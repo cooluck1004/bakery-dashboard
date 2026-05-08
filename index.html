@@ -115,6 +115,7 @@
     border-radius: 8px; padding: 10px 14px;
     color: var(--red); font-size: 12px;
     margin-bottom: 14px; display: none;
+    transition: background .2s, color .2s, border-color .2s;
   }
 
   /* ── P&L strip ── */
@@ -274,11 +275,11 @@
     <div class="config-title">⚙ 설정</div>
     <div class="config-inputs">
       <div class="field">
-        <label>Bakery ID</label>
-        <input class="ipt-id" id="bId" type="number" value="58" min="1">
+        <label>Bakery ID <span style="color:var(--text3);font-size:9px">(지갑 입력시 자동)</span></label>
+        <input class="ipt-id" id="bId" type="number" placeholder="자동" min="1">
       </div>
       <div class="field" style="flex:1;min-width:200px">
-        <label>지갑 주소 (AGW) — 가스비 자동 계산</label>
+        <label>지갑 주소 (AGW) — 팀 베이커리 자동 감지 + 가스비 계산</label>
         <input class="ipt-addr" id="walletAddr" type="text" placeholder="0x...">
       </div>
       <div class="field">
@@ -374,7 +375,7 @@
     </div>
 
     <div class="card">
-      <div class="card-h">🏪 Bakery info</div>
+      <div class="card-h">🏪 Bakery info <span id="teamBadge" style="display:none;font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;background:#1a1000;color:var(--amber);border:1px solid #854d0e;padding:1px 7px;border-radius:99px;margin-left:4px"></span></div>
       <div class="row"><span class="rl">Name</span><span class="rv" id="v-name">—</span></div>
       <div class="row"><span class="rl">Rank</span><span class="rv a" id="v-rank">—</span></div>
       <div class="row"><span class="rl">Score</span><span class="rv" id="v-score">—</span></div>
@@ -710,7 +711,7 @@ function calcPnL(cookieBal, allTimeCookies, gasETH) {
 // ── Main fetch ────────────────────────────────────────────────
 
 async function fetchAll() {
-  const id   = parseInt(document.getElementById('bId').value) || 58;
+  let id     = parseInt(document.getElementById('bId').value) || 0;
   const addr = document.getElementById('walletAddr').value.trim();
   const btnR = document.getElementById('btnRefresh');
 
@@ -720,6 +721,28 @@ async function fetchAll() {
   setStatus('불러오는 중...', '');
 
   try {
+    // 지갑 주소가 있으면 소속 팀 베이커리 자동 감지
+    if (addr && addr.startsWith('0x')) {
+      try {
+        const playerInp = JSON.stringify({ json: { address: addr } });
+        const playerData = await pfetch(BAKERY_API + 'leaderboard.getPlayerBakery?input=' + encodeURIComponent(playerInp));
+        const playerBakery = playerData?.result?.data?.json;
+        if (playerBakery?.clanId) {
+          id = playerBakery.clanId;
+          document.getElementById('bId').value = id;
+          showInfo('팀 베이커리 자동 감지: #' + id + (playerBakery.name ? ' (' + playerBakery.name + ')' : ''));
+        } else if (playerBakery?.id) {
+          id = playerBakery.id;
+          document.getElementById('bId').value = id;
+          showInfo('팀 베이커리 자동 감지: #' + id);
+        }
+      } catch(e) {
+        console.warn('[playerBakery] 자동 감지 실패:', e.message);
+      }
+    }
+
+    if (!id) { showErr('Bakery ID를 입력하거나 지갑 주소를 입력해 주세요.'); setStatus('오류', 'err'); return; }
+
     const inp = JSON.stringify({ json: { bakeryId: id } });
 
     const [bakeryData, effectsData] = await Promise.all([
@@ -743,6 +766,13 @@ async function fetchAll() {
 
     sv('v-cookies', fmtC(cookieBal) + ' 🍪');
     sv('v-name',  b.name  || '—');
+    // 팀 베이커리 배지
+    const tb = document.getElementById('teamBadge');
+    if (tb) {
+      const memberCount = b.memberCount || b.members?.length || null;
+      tb.textContent = memberCount != null ? '팀 · ' + memberCount + '명' : '팀 베이커리';
+      tb.style.display = 'inline';
+    }
     sv('v-rank',  b.rank  ? '#' + b.rank : '—', 'a');
     sv('v-score', b.score ? Number(b.score).toLocaleString() : '—');
     sv('v-bakes', (b.totalBakes || 0).toLocaleString());
