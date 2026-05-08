@@ -28,8 +28,6 @@ header{border-bottom:1px solid var(--border);padding:14px 24px;display:flex;alig
 .dot.pulse{animation:pulse 1.8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 main{max-width:1100px;margin:0 auto;padding:20px 24px}
-
-/* Config */
 .config-bar{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px}
 .config-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
 .config-inputs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
@@ -37,9 +35,9 @@ main{max-width:1100px;margin:0 auto;padding:20px 24px}
 .field label{font-size:10px;color:var(--text2)}
 input[type=text],input[type=number]{height:34px;padding:0 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
 input:focus{border-color:var(--amber)}
-.ipt-player{width:300px;max-width:100%}
+.ipt-player{width:280px;max-width:100%}
 .ipt-id{width:100px}
-.ipt-num{width:130px}
+.ipt-num{width:140px}
 .btn{height:34px;padding:0 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
 .btn:hover{background:#252525;border-color:#444}
 .btn:disabled{opacity:.4;cursor:default}
@@ -47,21 +45,15 @@ input:focus{border-color:var(--amber)}
 .btn.primary:hover{background:#252500}
 .btn.active{border-color:var(--green-dim);color:var(--green)}
 .cd-txt{font-size:11px;color:var(--text3);min-width:30px;font-family:var(--mono)}
-
-/* Notice box (error / info) */
-.notice{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;display:none}
+.notice{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;display:none;line-height:1.6}
 .notice.err{background:var(--red-bg);border:1px solid var(--red-dim);color:var(--red)}
 .notice.info{background:var(--green-bg);border:1px solid var(--green-dim);color:var(--green)}
 .notice.warn{background:var(--amber-bg);border:1px solid var(--amber-dim);color:var(--amber)}
-
-/* P&L strip */
 .pnl-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
 .metric .mv{font-size:14px;font-weight:600;font-family:var(--mono);line-height:1.3}
 .metric .ml{font-size:10px;color:var(--text3);margin-top:4px}
 .mv.g{color:var(--green)}.mv.r{color:var(--red)}.mv.a{color:var(--amber)}.mv.m{color:var(--text3)}
-
-/* Gas card */
 .gas-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px}
 .card-h{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .badge-sm{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;background:var(--bg3);color:var(--text2);border:1px solid var(--border);padding:2px 8px;border-radius:99px}
@@ -76,8 +68,6 @@ input:focus{border-color:var(--amber)}
 .gas-log-btn{font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;padding:0}
 .gas-log{margin-top:8px;max-height:160px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;display:none}
 .gas-log.open{display:block}
-
-/* Bottom grid */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
 .row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
@@ -91,33 +81,13 @@ input:focus{border-color:var(--amber)}
 .tag.r{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
 .tag.a{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim)}
 .tag.n{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
-
+.team-badge{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim);padding:1px 8px;border-radius:99px;margin-left:6px;display:none}
 .spinner{width:12px;height:12px;border:1.5px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .note{font-size:10px;color:var(--text3)}
 .ts{font-size:10px;color:var(--text3);text-align:right;margin-top:10px}
-.team-badge{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim);padding:1px 8px;border-radius:99px;margin-left:6px;display:none}
-
-@media(max-width:700px){
-  main{padding:14px}
-  .pnl-strip{grid-template-columns:repeat(3,1fr)}
-  .grid2{grid-template-columns:1fr}
-  .gas-grid{grid-template-columns:repeat(2,1fr)}
-  .ipt-player{width:100%}
-}
+@media(max-width:700px){main{padding:14px} .pnl-strip{grid-template-columns:repeat(3,1fr)} .grid2{grid-template-columns:1fr} .gas-grid{grid-template-columns:repeat(2,1fr)} .ipt-player{width:100%}}
 @media(max-width:420px){.pnl-strip{grid-template-columns:repeat(2,1fr)}}
-  .nick-tag {
-    font-size:11px; padding:2px 10px; border-radius:99px; cursor:pointer;
-    background:var(--bg3); border:1px solid var(--border2); color:var(--text2);
-    display:inline-flex; align-items:center; gap:5px; transition:border-color .15s;
-  }
-  .nick-tag:hover { border-color:var(--amber); color:var(--amber); }
-  .nick-tag .del { color:var(--text3); font-size:10px; margin-left:2px; }
-  .nick-tag .del:hover { color:var(--red); }
-  .nick-tag { font-size:11px; padding:2px 10px; border-radius:99px; cursor:pointer;
-    background:var(--bg3); border:1px solid var(--border2); color:var(--text2);
-    display:inline-flex; align-items:center; gap:4px; }
-  .nick-tag:hover { border-color:var(--amber); color:var(--amber); }
 </style>
 </head>
 <body>
@@ -136,7 +106,7 @@ input:focus{border-color:var(--amber)}
   <div class="config-bar">
     <div class="config-title">⚙ 설정</div>
     <div class="config-inputs">
-      <div class="field" style="flex:1;min-width:220px">
+      <div class="field" style="flex:1;min-width:200px">
         <label>닉네임 또는 지갑 주소 (0x...)</label>
         <input class="ipt-player" id="playerInput" type="text" placeholder="cooluck  또는  0xb98F...">
       </div>
@@ -145,18 +115,12 @@ input:focus{border-color:var(--amber)}
         <input class="ipt-id" id="bId" type="number" placeholder="" min="1">
       </div>
       <div class="field">
-        <label>Prize pool (ETH) <span id="prizeAutoLabel" style="color:var(--amber);font-size:9px;margin-left:3px"></span></label>
-        <input class="ipt-num" id="prizePool" type="number" placeholder="자동 조회 중..." step="0.001">
+        <label>Prize pool (USD) <span id="prizeAutoLabel" style="color:var(--amber);font-size:9px;margin-left:3px"></span></label>
+        <input class="ipt-num" id="prizePoolUsd" type="number" placeholder="자동 조회 중..." step="1">
       </div>
       <button class="btn primary" id="btnRefresh" onclick="fetchAll()">↻ Refresh</button>
       <button class="btn" id="btnAuto" onclick="toggleAuto()">▶ Auto 30s</button>
       <span class="cd-txt" id="cdTxt"></span>
-    </div>
-    <div id="nickBookBar" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-      <span style="font-size:10px;color:var(--text3)">💾 저장된 닉네임:</span>
-      <span id="nickTags" style="display:flex;flex-wrap:wrap;gap:5px"></span>
-      <button class="btn" style="height:26px;font-size:11px;padding:0 10px" onclick="saveNick()">+ 현재 주소 닉네임으로 저장</button>
-      <span style="font-size:10px;color:var(--text3)">← 주소 입력 후 저장하면 다음부터 닉네임으로 검색 가능</span>
     </div>
   </div>
 
@@ -164,7 +128,7 @@ input:focus{border-color:var(--amber)}
 
   <div class="pnl-strip">
     <div class="metric"><div class="mv" id="p-eth">—</div><div class="ml">ETH price</div></div>
-    <div class="metric"><div class="mv" id="p-pool">—</div><div class="ml">Prize pool</div></div>
+    <div class="metric"><div class="mv" id="p-pool">—</div><div class="ml">Prize pool (ETH)</div></div>
     <div class="metric"><div class="mv" id="p-share">—</div><div class="ml">My share</div></div>
     <div class="metric"><div class="mv g" id="p-gross">—</div><div class="ml">Est. gross</div></div>
     <div class="metric"><div class="mv" id="p-pnl">—</div><div class="ml">P&L (ETH)</div></div>
@@ -214,30 +178,28 @@ input:focus{border-color:var(--amber)}
   <div class="ts" id="lastUpdated"></div>
 </main>
 
-<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.5</div>
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.7</div>
 
 <script>
-// ── Constants ────────────────────────────────────────────────
 const BAKERY_API  = 'https://www.rugpullbakery.com/api/trpc/';
 const ABSCAN_API  = 'https://api.abscan.org/api';
 const CGECKO      = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+const PORTAL_SEARCH = 'https://backend.portal.abs.xyz/api/search/global?query=';
 const BAKERY_ADDR = '0xfeb79a841d69c08afcdc7b2beec8a6fbbe46c455';
 const BOOST_ADDR  = '0x4f97015601863c256892e0a5e2710b48e149948c';
 const LB_BUCKET   = 0.30;
 const PAGE_SIZE   = 10000;
 
 const PROXIES = [
-  url => 'https://corsproxy.io/?url='                          + encodeURIComponent(url),
-  url => 'https://api.allorigins.win/raw?url='                 + encodeURIComponent(url),
-  url => 'https://cors.eu.org/'                                + url,
+  url => 'https://corsproxy.io/?url='         + encodeURIComponent(url),
+  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+  url => 'https://cors.eu.org/'               + url,
 ];
 let proxyIdx = 0;
-
-// ── State ────────────────────────────────────────────────────
 let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0;
 let autoOn = false, cdSec = 0, cdTimer = null, logVisible = false;
 
-// ── Proxy fetch ──────────────────────────────────────────────
+// ── Proxy fetch ───────────────────────────────────────────────
 async function pfetch(url) {
   for (let i = 0; i < PROXIES.length; i++) {
     const idx = (proxyIdx + i) % PROXIES.length;
@@ -248,28 +210,24 @@ async function pfetch(url) {
       proxyIdx = idx;
       document.getElementById('proxyLabel').textContent = ['corsproxy.io','allorigins','cors.eu.org'][idx];
       return data;
-    } catch(e) {
-      console.warn('[proxy' + idx + '] ' + e.message);
-    }
+    } catch(e) { console.warn('[proxy' + idx + ']', e.message); }
   }
-  throw new Error('모든 프록시 실패 — 잠시 후 다시 시도해 주세요');
+  throw new Error('모든 프록시 실패');
 }
 
-// ── UI helpers ───────────────────────────────────────────────
+// ── UI helpers ────────────────────────────────────────────────
 function setStatus(txt, cls) {
   document.getElementById('statusPill').className = cls || '';
   document.getElementById('sDot').className = 'dot' + (cls === 'live' ? ' pulse' : '');
   document.getElementById('sTxt').textContent = txt;
 }
-
 function notice(msg, type) {
   const b = document.getElementById('noticeBox');
   if (!msg) { b.style.display = 'none'; return; }
   b.className = 'notice ' + (type || 'err');
-  b.textContent = (type === 'info' ? '✓ ' : type === 'warn' ? '⚠ ' : '⚠ ') + msg;
+  b.textContent = (type === 'info' ? '✓ ' : '⚠ ') + msg;
   b.style.display = 'block';
 }
-
 function sv(id, txt, cls) {
   const el = document.getElementById(id); if (!el) return;
   if (cls !== undefined) el.className = 'rv ' + (cls || '');
@@ -287,135 +245,14 @@ function setTags(id, items, cls) {
 }
 function fmtC(n)   { return Math.floor(n).toLocaleString('ko-KR'); }
 function fmtE(n,d) { return n.toFixed(d ?? 5); }
-function fmtUSD(n) { return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
-
+function fmtUSD(n) { return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function toggleLog() {
   logVisible = !logVisible;
   document.getElementById('gasLog').className = 'gas-log' + (logVisible ? ' open' : '');
   document.getElementById('logBtn').textContent = logVisible ? '트랜잭션 로그 닫기 ▴' : '트랜잭션 로그 보기 ▾';
 }
 
-// ── Nickname book (localStorage) ────────────────────────────
-const NICK_KEY = 'rugpull_nickbook_v1';
-
-function loadNickBook() {
-  try { return JSON.parse(localStorage.getItem(NICK_KEY) || '{}'); } catch { return {}; }
-}
-function saveNickBook(book) { localStorage.setItem(NICK_KEY, JSON.stringify(book)); }
-
-function renderNickBook() {
-  const book = loadNickBook();
-  const keys = Object.keys(book);
-  const bar  = document.getElementById('nickBookBar');
-  const tags = document.getElementById('nickTags');
-  if (!bar || !tags) return;
-  bar.style.display = 'flex';
-  tags.innerHTML = keys.map(nick => {
-    const addr = book[nick];
-    const short = addr.slice(0,6)+'...'+addr.slice(-4);
-    return `<span class="nick-tag" onclick="loadNick('${nick}')">` +
-      `${nick} <span style="color:var(--text3);font-size:10px">${short}</span>` +
-      `<span class="del" onclick="event.stopPropagation();deleteNick('${nick}')" title="삭제"> ✕</span></span>`;
-  }).join('');
-}
-
-function saveNick() {
-  const input = document.getElementById('playerInput').value.trim();
-  if (!input) { notice('먼저 지갑 주소를 입력해 주세요.', 'warn'); return; }
-  if (!/^0x[0-9a-fA-F]{40}$/.test(input)) {
-    notice('지갑 주소(0x...) 형식으로 입력한 뒤 저장해 주세요.', 'warn'); return;
-  }
-  const nick = prompt('이 주소의 닉네임을 입력해 주세요 (예: cooluck):', '');
-  if (!nick || !nick.trim()) return;
-  const book = loadNickBook();
-  book[nick.trim()] = input;
-  saveNickBook(book);
-  renderNickBook();
-  notice('"' + nick.trim() + '" 닉네임 저장 완료! 이제 닉네임만 입력해도 자동으로 이 주소가 쓰입니다.', 'info');
-}
-
-function loadNick(nick) {
-  const book = loadNickBook();
-  if (book[nick]) {
-    document.getElementById('playerInput').value = book[nick];
-    notice('"' + nick + '" → ' + book[nick].slice(0,6)+'...'+book[nick].slice(-4), 'info');
-  }
-}
-
-function deleteNick(nick) {
-  if (!confirm('"' + nick + '" 닉네임을 삭제할까요?')) return;
-  const book = loadNickBook();
-  delete book[nick];
-  saveNickBook(book);
-  renderNickBook();
-}
-
-// ── Username → Address resolver ─────────────────────────────
-async function resolveUsername(username) {
-  const name = username.trim();
-
-  // 1순위: 로컬 닉네임 북
-  const book = loadNickBook();
-  const hit = Object.entries(book).find(([k]) => k.toLowerCase() === name.toLowerCase());
-  if (hit) { console.log('[resolve] 닉네임 북 히트:', hit[1]); return hit[1]; }
-
-  // 2순위: backend.portal.abs.xyz/api/search/global (포탈 검색 공식 엔드포인트)
-  try {
-    const url = `https://backend.portal.abs.xyz/api/search/global?query=${encodeURIComponent(name)}`;
-    const data = await pfetch(url);
-    console.log('[resolve] global search 응답:', JSON.stringify(data)?.slice(0, 200));
-
-    // 응답 구조: data.results.users[].name + .address
-    const users = data?.results?.users || data?.users || [];
-    const match = users.find(u =>
-      (u.name || u.username || u.displayName || '').toLowerCase() === name.toLowerCase()
-    );
-    if (match?.address?.startsWith('0x')) {
-      console.log('[resolve] ✅ portal global search 히트:', match.address);
-      return match.address;
-    }
-
-  } catch(e) {
-    console.warn('[resolve] global search 실패:', e.message);
-  }
-
-  return null;
-}
-
-// ── Find bakery from address ─────────────────────────────────
-async function findBakeryId(address) {
-  console.log('[bakery] 팀 베이커리 조회:', address);
-
-  // 다양한 input 포맷 시도
-  const inputs = [
-    { address },
-    { playerAddress: address },
-    { walletAddress: address },
-    { ownerAddress: address },
-  ];
-
-  const endpoints = [
-    'leaderboard.getPlayerBakery',
-    'leaderboard.getBakeryByOwner',
-    'leaderboard.getMyBakeryInit',
-  ];
-
-  for (const ep of endpoints) {
-    for (const jsonBody of inputs) {
-      try {
-        const inp = JSON.stringify({ json: jsonBody });
-        const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(inp));
-        const pb = data?.result?.data?.json;
-        console.log('[bakery] ' + ep, JSON.stringify(pb)?.slice(0, 100));
-        const detectedId = pb?.clanId || pb?.id || pb?.bakeryId || pb?.clan?.id;
-        if (detectedId) return { id: detectedId, name: pb?.name || pb?.clan?.name || '' };
-      } catch(e) { /* 다음 시도 */ }
-    }
-  }
-  return null;
-}
-
-// ── ETH price ────────────────────────────────────────────────
+// ── ETH price ─────────────────────────────────────────────────
 async function fetchETH() {
   try {
     const r = await fetch(CGECKO);
@@ -425,65 +262,158 @@ async function fetchETH() {
     try { const d2 = await pfetch(CGECKO); ethPrice = d2?.ethereum?.usd || 0; }
     catch { ethPrice = 0; }
   }
+  smv('p-eth', ethPrice > 0 ? fmtUSD(ethPrice) : '—');
 }
 
-// ── Prize pool ───────────────────────────────────────────────
+// ── Prize pool (USD → ETH 자동 변환) ─────────────────────────
 async function fetchPrizePool() {
-  const manualVal = parseFloat(document.getElementById('prizePool').value);
-  if (manualVal > 0) return;
+  const manualUsd = parseFloat(document.getElementById('prizePoolUsd').value);
   const label = document.getElementById('prizeAutoLabel');
 
-  const endpoints = ['leaderboard.getActiveSeason', 'leaderboard.getCurrentSeason'];
+  // 수동 입력이 있으면 ETH 변환만
+  if (manualUsd > 0) {
+    updatePrizeDisplay(manualUsd, '수동');
+    return;
+  }
+
+  // API 자동 조회
+  const endpoints = [
+    'leaderboard.getActiveSeason',
+    'leaderboard.getCurrentSeason',
+  ];
   for (const ep of endpoints) {
     try {
       const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json: {} })));
-      const season = data?.result?.data?.json;
-      if (!season) continue;
+      const s = data?.result?.data?.json;
+      if (!s) continue;
 
-      let poolETH = null;
-      if (season.prizePool != null) {
-        const raw = Number(season.prizePool);
-        poolETH = raw > 1e15 ? raw / 1e18 : raw;
-      } else if (season.prizePoolUsd != null && ethPrice > 0) {
-        poolETH = season.prizePoolUsd / ethPrice;
-      } else if (season.totalPrize != null) {
-        const raw = Number(season.totalPrize);
-        poolETH = raw > 1e15 ? raw / 1e18 : raw;
+      // USD 기준 prize pool 추출
+      let usd = null;
+      if (s.prizePoolUsd != null)       usd = Number(s.prizePoolUsd);
+      else if (s.prizePool != null) {
+        const raw = Number(s.prizePool);
+        // wei면 ETH로, 달러면 그대로
+        usd = raw > 1e15 ? (raw / 1e18) * ethPrice : raw;
+      } else if (s.totalPrize != null) {
+        const raw = Number(s.totalPrize);
+        usd = raw > 1e15 ? (raw / 1e18) * ethPrice : raw;
       }
-      if (poolETH > 0) {
-        document.getElementById('prizePool').value = poolETH.toFixed(4);
+
+      if (usd > 0) {
+        document.getElementById('prizePoolUsd').value = Math.round(usd);
         if (label) label.textContent = '● 자동';
+        updatePrizeDisplay(usd, '자동');
         return;
       }
-    } catch(e) { console.warn('[prizePool]', e.message); }
+    } catch(e) { console.warn('[prize]', ep, e.message); }
   }
 
   // agent.json 시도
   try {
     const d = await pfetch('https://www.rugpullbakery.com/agent.json');
-    const raw = d?.prizePool ?? d?.season?.prizePool;
+    const raw = d?.prizePool ?? d?.season?.prizePool ?? d?.prizePoolUsd;
     if (raw != null) {
       const n = Number(raw);
-      const eth = n > 1e15 ? n / 1e18 : n;
-      if (eth > 0) {
-        document.getElementById('prizePool').value = eth.toFixed(4);
+      const usd = n > 1e15 ? (n / 1e18) * ethPrice : n;
+      if (usd > 0) {
+        document.getElementById('prizePoolUsd').value = Math.round(usd);
         if (label) label.textContent = '● 자동';
+        updatePrizeDisplay(usd, '자동');
         return;
       }
     }
-  } catch(e) { console.warn('[prizePool] agent.json:', e.message); }
+  } catch(e) { console.warn('[prize] agent.json', e.message); }
 
   if (label) label.textContent = '수동 입력';
-  document.getElementById('prizePool').placeholder = '직접 입력 (ETH)';
+  document.getElementById('prizePoolUsd').placeholder = '직접 입력 (USD)';
 }
 
-// ── Gas cost (paginated) ─────────────────────────────────────
+function updatePrizeDisplay(usd, src) {
+  if (ethPrice > 0 && usd > 0) {
+    const eth = usd / ethPrice;
+    smv('p-pool', fmtE(eth, 4) + ' ETH');
+    document.getElementById('p-pool').title = fmtUSD(usd) + ' ÷ ' + fmtUSD(ethPrice) + '/ETH';
+  } else {
+    smv('p-pool', fmtUSD(usd));
+  }
+}
+
+// ── Username → Address ────────────────────────────────────────
+async function resolveUsername(username) {
+  const name = username.trim();
+  try {
+    const data = await pfetch(PORTAL_SEARCH + encodeURIComponent(name));
+    const users = data?.results?.users || [];
+    const match = users.find(u =>
+      (u.name || u.username || u.displayName || '').toLowerCase() === name.toLowerCase()
+    );
+    if (match?.address?.startsWith('0x')) {
+      console.log('[resolve] ✅ portal 히트:', match.address);
+      return match.address;
+    }
+  } catch(e) { console.warn('[resolve] portal:', e.message); }
+  return null;
+}
+
+// ── Find team bakery from address ─────────────────────────────
+async function findBakeryId(address) {
+  console.log('[bakery] 팀 베이커리 조회:', address);
+  const addrLower = address.toLowerCase();
+
+  // 작동 확인된 방식 최우선: getPlayerBakery + { address } 원본/소문자 둘 다 시도
+  const priorityAttempts = [
+    { ep: 'leaderboard.getPlayerBakery',     json: { address: address } },
+    { ep: 'leaderboard.getPlayerBakery',     json: { address: addrLower } },
+    { ep: 'leaderboard.getMyBakeryInit',     json: { address: address } },
+    { ep: 'leaderboard.getMyBakeryInit',     json: { address: addrLower } },
+    { ep: 'leaderboard.getBakeryByOwner',    json: { address: address } },
+    { ep: 'leaderboard.getBakeryByOwner',    json: { ownerAddress: address } },
+    { ep: 'leaderboard.getPlayerBakery',     json: { playerAddress: address } },
+    { ep: 'leaderboard.getPlayerBakery',     json: { walletAddress: address } },
+    { ep: 'leaderboard.getPlayerBakeryInfo', json: { address: address } },
+  ];
+
+  for (const { ep, json } of priorityAttempts) {
+    try {
+      const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json })));
+      const pb = data?.result?.data?.json;
+      if (!pb) continue;
+      console.log('[bakery] ✅', ep, JSON.stringify(json), '->', JSON.stringify(pb).slice(0, 120));
+
+      const id = pb?.clanId ?? pb?.id ?? pb?.bakeryId
+              ?? pb?.clan?.id ?? pb?.currentClan?.id ?? pb?.bakery?.id;
+      if (id) return {
+        id: Number(id),
+        name: pb?.name ?? pb?.clan?.name ?? pb?.bakery?.name ?? pb?.currentClan?.name ?? ''
+      };
+    } catch(e) { /* skip */ }
+  }
+
+  // 최후 수단: getTopBakeries에서 owner/member 주소로 매칭
+  try {
+    const data = await pfetch(BAKERY_API + 'leaderboard.getTopBakeries?input='
+      + encodeURIComponent(JSON.stringify({ json: { limit: 200 } })));
+    const list = data?.result?.data?.json?.bakeries || data?.result?.data?.json || [];
+    const match = list.find(b =>
+      b.ownerAddress?.toLowerCase() === addrLower ||
+      b.owner?.toLowerCase() === addrLower ||
+      b.members?.some?.(m => m.address?.toLowerCase() === addrLower)
+    );
+    if (match) {
+      console.log('[bakery] ✅ topBakeries 매칭:', match.id ?? match.clanId);
+      return { id: Number(match.id ?? match.clanId), name: match.name ?? '' };
+    }
+  } catch(e) { console.warn('[bakery] topBakeries:', e.message); }
+
+  return null;
+}
+
+// ── Gas cost (paginated) ──────────────────────────────────────
 async function fetchGasCost(address) {
   if (!address) return null;
   const noteEl  = document.getElementById('gasNote');
   const badgeEl = document.getElementById('txCountBadge');
   noteEl.textContent = '페이지 1 조회 중...';
-
   let allTxs = [], page = 1, hasMore = true;
   while (hasMore) {
     const url = `${ABSCAN_API}?module=account&action=txlist&address=${address}&sort=asc&page=${page}&offset=${PAGE_SIZE}`;
@@ -491,81 +421,78 @@ async function fetchGasCost(address) {
       const data = await pfetch(url);
       if (data.status !== '1' || !Array.isArray(data.result) || !data.result.length) { hasMore = false; break; }
       allTxs = allTxs.concat(data.result);
-      noteEl.textContent = allTxs.length.toLocaleString() + '건 로드 중 (페이지 ' + page + ')...';
+      noteEl.textContent = allTxs.length.toLocaleString() + '건 로드 중 (p' + page + ')...';
       badgeEl.textContent = allTxs.length.toLocaleString() + '건 로드 중...';
-      if (data.result.length < PAGE_SIZE) hasMore = false; else { page++; await new Promise(r => setTimeout(r, 100)); }
+      if (data.result.length < PAGE_SIZE) hasMore = false;
+      else { page++; await new Promise(r => setTimeout(r, 100)); }
     } catch(e) { noteEl.textContent = '조회 오류: ' + e.message; break; }
   }
-  if (!allTxs.length) { noteEl.textContent = '트랜잭션 없음 (주소 확인 필요)'; badgeEl.textContent = '0건'; return null; }
-
+  if (!allTxs.length) {
+    noteEl.textContent = '트랜잭션 없음 (주소 확인 필요)';
+    badgeEl.textContent = '0건';
+    return null;
+  }
   const bakeTxs  = allTxs.filter(tx => tx.to?.toLowerCase() === BAKERY_ADDR);
   const boostTxs = allTxs.filter(tx => tx.to?.toLowerCase() === BOOST_ADDR);
   let bakeWei = 0n, boostWei = 0n;
   for (const tx of bakeTxs)  bakeWei  += BigInt(tx.gasUsed || 0) * BigInt(tx.gasPrice || 0);
   for (const tx of boostTxs) boostWei += BigInt(tx.gasUsed || 0) * BigInt(tx.gasPrice || 0);
-
   const totalETH = Number(bakeWei + boostWei) / 1e18;
   document.getElementById('g-total').textContent = fmtE(totalETH, 5) + ' ETH';
-  document.getElementById('g-bake').textContent  = fmtE(Number(bakeWei) / 1e18, 5) + ' ETH';
+  document.getElementById('g-bake').textContent  = fmtE(Number(bakeWei)  / 1e18, 5) + ' ETH';
   document.getElementById('g-boost').textContent = fmtE(Number(boostWei) / 1e18, 5) + ' ETH';
   document.getElementById('g-usd').textContent   = ethPrice > 0 ? fmtUSD(totalETH * ethPrice) : '—';
-
   const rel = bakeTxs.length + boostTxs.length;
   badgeEl.textContent = `전체 ${allTxs.length.toLocaleString()}건 중 베이커리 ${rel}건 (bake ${bakeTxs.length} + boost ${boostTxs.length}) · ${page}p`;
   noteEl.textContent  = `abscan.org · 총 ${page}페이지 (${allTxs.length.toLocaleString()}건) 조회 완료`;
-
-  // 로그
-  const recent = [...bakeTxs, ...boostTxs].sort((a,b) => Number(b.timeStamp)-Number(a.timeStamp)).slice(0,20);
+  const recent = [...bakeTxs, ...boostTxs].sort((a,b)=>Number(b.timeStamp)-Number(a.timeStamp)).slice(0,20);
   document.getElementById('gasLog').innerHTML = recent.map(tx => {
     const t = tx.to?.toLowerCase() === BAKERY_ADDR ? '🍞 bake ' : '🛒 boost';
     const g = (Number(BigInt(tx.gasUsed||0)*BigInt(tx.gasPrice||0))/1e18).toFixed(6);
     const d = new Date(Number(tx.timeStamp)*1000).toLocaleString('ko-KR',{hour12:false});
-    const h = tx.hash ? tx.hash.slice(0,10)+'...' : '—';
-    return `${d}  ${t}  gas:${g}ETH  <a href="https://abscan.org/tx/${tx.hash}" target="_blank" style="color:var(--amber)">${h}</a>`;
-  }).join('\n') || '관련 트랜잭션 없음';
+    return `${d}  ${t}  gas:${g}ETH  <a href="https://abscan.org/tx/${tx.hash}" target="_blank" style="color:var(--amber)">${tx.hash.slice(0,10)}...</a>`;
+  }).join('\n') || '없음';
   document.getElementById('logBtn').style.display = 'inline';
-
   cachedGasETH = totalETH;
   return totalETH;
 }
 
-// ── P&L calc ─────────────────────────────────────────────────
+// ── P&L calc ──────────────────────────────────────────────────
 function calcPnL(allTimeCookies, gasETH) {
-  smv('p-eth', ethPrice > 0 ? '$' + ethPrice.toLocaleString() : '—');
-  const prizeInput = parseFloat(document.getElementById('prizePool').value);
+  const usdInput = parseFloat(document.getElementById('prizePoolUsd').value);
   const gas = gasETH != null ? gasETH : cachedGasETH;
+  if (isNaN(usdInput) || usdInput <= 0 || ethPrice <= 0) return;
 
-  if (isNaN(prizeInput)) { smv('p-pool','입력 필요','m'); return; }
-  smv('p-pool', prizeInput.toFixed(3) + ' ETH');
-
-  const leaderPot = prizeInput * LB_BUCKET;
+  const prizeETH  = usdInput / ethPrice;
+  const leaderPot = prizeETH * LB_BUCKET;
   let sharePct = 0, grossETH = 0;
   if (allTimeCookies > 0 && totalCookiesSeason > 0) {
     sharePct = (allTimeCookies / totalCookiesSeason) * 100;
     grossETH = leaderPot * (allTimeCookies / totalCookiesSeason);
   }
 
+  smv('p-pool',  fmtE(prizeETH, 4) + ' ETH');
   smv('p-share', sharePct > 0 ? sharePct.toFixed(4)+'%' : '—', sharePct > 0 ? 'g' : 'm');
-  smv('p-gross', fmtE(grossETH,4)+' ETH', 'g');
-  sv('v-gross-eth', fmtE(grossETH,4)+' ETH', 'g');
+  smv('p-gross', fmtE(grossETH, 4)+' ETH', 'g');
+  sv('v-gross-eth', fmtE(grossETH, 4)+' ETH', 'g');
 
   const pnlETH = grossETH - gas;
   smv('p-pnl', (pnlETH>=0?'+':'')+fmtE(pnlETH,4)+' ETH', pnlETH>=0?'g':'r');
-  if (ethPrice > 0) sv('v-pnl-usd', (pnlETH>=0?'+':'')+fmtUSD(pnlETH*ethPrice), pnlETH>=0?'g':'r');
+  sv('v-pnl-usd', (pnlETH>=0?'+':'')+fmtUSD(pnlETH*ethPrice), pnlETH>=0?'g':'r');
 
   if (gas > 0 && grossETH > 0) {
-    const pct = Math.min((gas/grossETH)*100,100);
-    document.getElementById('gasProgress').style.display='block';
-    document.getElementById('gasFill').style.width=pct.toFixed(1)+'%';
-    document.getElementById('gasRatioPct').textContent=pct.toFixed(1)+'% of gross';
+    const pct = Math.min((gas/grossETH)*100, 100);
+    document.getElementById('gasProgress').style.display = 'block';
+    document.getElementById('gasFill').style.width = pct.toFixed(1)+'%';
+    document.getElementById('gasRatioPct').textContent = pct.toFixed(1)+'% of gross';
   }
 }
 
 // ── Main fetch ────────────────────────────────────────────────
 async function fetchAll() {
-  const rawInput  = document.getElementById('playerInput').value.trim();
-  const manualId  = parseInt(document.getElementById('bId').value) || 0;
-  const btnR      = document.getElementById('btnRefresh');
+  const rawInput = document.getElementById('playerInput').value.trim();
+  const manualId = parseInt(document.getElementById('bId').value) || 0;
+  const btnR     = document.getElementById('btnRefresh');
 
   btnR.innerHTML = '<span class="spinner"></span> 로딩 중';
   btnR.disabled  = true;
@@ -578,40 +505,35 @@ async function fetchAll() {
   try {
     await Promise.all([fetchETH(), fetchPrizePool()]);
 
-    // ── Step 1: 닉네임 or 주소 resolve ──
+    // Step 1: 닉네임 or 주소 resolve
     if (rawInput) {
       if (/^0x[0-9a-fA-F]{40}$/.test(rawInput)) {
-        resolvedAddr = rawInput;
-        console.log('[main] 지갑 주소 입력:', resolvedAddr);
+        resolvedAddr = rawInput; // 원본 케이싱 보존
       } else {
         setStatus('닉네임 조회 중...', '');
-        notice('닉네임 "' + rawInput + '" 조회 중...', 'warn');
         const addr = await resolveUsername(rawInput);
         if (addr) {
-          resolvedAddr = addr;
-          notice('닉네임 "' + rawInput + '" → ' + addr.slice(0,6) + '...' + addr.slice(-4) + ' 연결 완료', 'info');
+          resolvedAddr = addr; // portal에서 받은 그대로 사용
+          notice('"' + rawInput + '" → ' + addr.slice(0,6)+'...'+addr.slice(-4), 'info');
         } else {
-          notice('닉네임 "' + rawInput + '"을 찾을 수 없습니다. ' +
-            'Abstract에 닉네임→주소 공개 API가 없어 자동 조회가 불가합니다. ' +
-            '지갑 주소(0x...)를 먼저 입력한 뒤 "+ 현재 주소 닉네임으로 저장" 버튼으로 등록하면, ' +
-            '다음부터 닉네임만으로 사용할 수 있습니다.', 'err');
+          notice('"' + rawInput + '" 닉네임을 찾을 수 없습니다. 지갑 주소(0x...)를 직접 입력해 주세요.', 'err');
           setStatus('오류', 'err');
           return;
         }
       }
     }
 
-    // ── Step 2: Bakery ID 결정 ──
+    // Step 2: Bakery ID 결정
     if (!bakeryId && resolvedAddr) {
       setStatus('팀 베이커리 감지 중...', '');
       const found = await findBakeryId(resolvedAddr);
       if (found) {
         bakeryId = found.id;
         document.getElementById('bId').value = bakeryId;
-        notice('팀 베이커리 자동 감지: #' + bakeryId + (found.name ? ' (' + found.name + ')' : ''), 'info');
+        notice((rawInput && !/^0x/.test(rawInput) ? '"'+rawInput+'" → ' : '')
+          + '팀 베이커리 자동 감지: #' + bakeryId + (found.name ? ' ('+found.name+')' : ''), 'info');
       } else {
-        // 시즌 미시작이거나 팀 미가입 → 가스비만 계산
-        notice('소속 팀 베이커리를 찾을 수 없습니다. 시즌 미시작이거나 아직 팀에 가입하지 않은 상태일 수 있습니다.\n가스비 분석은 계속 진행합니다.', 'warn');
+        notice('소속 팀 베이커리를 찾을 수 없습니다. 시즌이 시작되지 않았거나 팀 미가입 상태일 수 있습니다.\n가스비 분석은 계속 진행합니다.', 'warn');
         if (resolvedAddr) await fetchGasCost(resolvedAddr);
         setStatus('일부 완료 (팀 미감지)', '');
         return;
@@ -624,7 +546,8 @@ async function fetchAll() {
       return;
     }
 
-    // ── Step 3: 베이커리 데이터 fetch ──
+    // Step 3: 베이커리 데이터
+    setStatus('베이커리 데이터 로드 중...', '');
     const inp = JSON.stringify({ json: { bakeryId } });
     const [bakeryData, effectsData] = await Promise.all([
       pfetch(BAKERY_API + 'leaderboard.getBakeryById?input=' + encodeURIComponent(inp)),
@@ -635,17 +558,16 @@ async function fetchAll() {
     const e = effectsData?.result?.data?.json;
     if (!b) { notice('Bakery #' + bakeryId + ' 를 찾을 수 없습니다.', 'err'); setStatus('오류','err'); return; }
 
-    const cookieBal   = (b.cookieBalance   ?? 0) / 10000;
-    const allTimeCook = (b.allTimeCookies  ?? 0) / 10000;
+    const cookieBal   = (b.cookieBalance  ?? 0) / 10000;
+    const allTimeCook = (b.allTimeCookies ?? 0) / 10000;
 
     sv('v-cookies', fmtC(cookieBal) + ' 🍪');
-    sv('v-name', b.name || '—');
-    sv('v-rank', b.rank ? '#' + b.rank : '—', 'a');
+    sv('v-name',  b.name || '—');
+    sv('v-rank',  b.rank ? '#' + b.rank : '—', 'a');
     sv('v-score', b.score ? Number(b.score).toLocaleString() : '—');
     sv('v-bakes', (b.totalBakes || 0).toLocaleString());
     sv('v-total', fmtC(allTimeCook));
 
-    // 팀 배지
     const tb = document.getElementById('teamBadge');
     const mc = b.memberCount || b.members?.length;
     if (mc != null) { tb.textContent = '팀 · ' + mc + '명'; tb.style.display = 'inline'; }
@@ -660,14 +582,15 @@ async function fetchAll() {
       setTags('v-pending',   (e.pendingRequests ||[]).map(x=>x.boostName||x.name||'VRF'), 'n');
     }
 
-    // ── Step 4: 가스비 계산 ──
+    // Step 4: 가스비 + P&L
     let gasETH = null;
     if (resolvedAddr) gasETH = await fetchGasCost(resolvedAddr);
-
     calcPnL(allTimeCook, gasETH);
+
+    notice(null);
     setStatus('업데이트 완료', 'live');
-    document.getElementById('lastUpdated').textContent = '최종 업데이트: ' + new Date().toLocaleTimeString('ko-KR',{hour12:false});
-    if (!notice || document.getElementById('noticeBox').className.includes('warn') || document.getElementById('noticeBox').className.includes('err')) {}
+    document.getElementById('lastUpdated').textContent =
+      '최종 업데이트: ' + new Date().toLocaleTimeString('ko-KR', {hour12:false});
 
   } catch(err) {
     console.error('[main]', err);
@@ -679,12 +602,13 @@ async function fetchAll() {
   }
 }
 
-document.getElementById('prizePool').addEventListener('input', () => calcPnL(0, null));
+document.getElementById('prizePoolUsd').addEventListener('input', () => {
+  const usd = parseFloat(document.getElementById('prizePoolUsd').value);
+  if (usd > 0) updatePrizeDisplay(usd, '수동');
+  calcPnL(0, null);
+});
 
-// 닉네임 북 초기 렌더링
-renderNickBook();
-
-// ── Auto refresh ─────────────────────────────────────────────
+// ── Auto refresh ──────────────────────────────────────────────
 function toggleAuto() {
   autoOn = !autoOn;
   const btn = document.getElementById('btnAuto');
