@@ -214,7 +214,7 @@ input:focus{border-color:var(--amber)}
   <div class="ts" id="lastUpdated"></div>
 </main>
 
-<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.3</div>
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.5</div>
 
 <script>
 // ── Constants ────────────────────────────────────────────────
@@ -359,64 +359,24 @@ async function resolveUsername(username) {
   const hit = Object.entries(book).find(([k]) => k.toLowerCase() === name.toLowerCase());
   if (hit) { console.log('[resolve] 닉네임 북 히트:', hit[1]); return hit[1]; }
 
-  // 2순위: backend.portal.abs.xyz/api/user (포탈 검색 백엔드)
-  // 파라미터 형식이 확인되지 않아 가능한 형식 순서대로 시도
-  const backendBase = 'https://backend.portal.abs.xyz/api/user';
-  const backendParams = [
-    `?username=${encodeURIComponent(name)}`,
-    `?search=${encodeURIComponent(name)}`,
-    `?q=${encodeURIComponent(name)}`,
-    `?query=${encodeURIComponent(name)}`,
-    `?name=${encodeURIComponent(name)}`,
-    `/${encodeURIComponent(name)}`,
-    `?handle=${encodeURIComponent(name)}`,
-  ];
+  // 2순위: backend.portal.abs.xyz/api/search/global (포탈 검색 공식 엔드포인트)
+  try {
+    const url = `https://backend.portal.abs.xyz/api/search/global?query=${encodeURIComponent(name)}`;
+    const data = await pfetch(url);
+    console.log('[resolve] global search 응답:', JSON.stringify(data)?.slice(0, 200));
 
-  for (const param of backendParams) {
-    const url = backendBase + param;
-    try {
-      const data = await pfetch(url);
-      console.log('[resolve] backend 응답:', param, JSON.stringify(data)?.slice(0, 150));
+    // 응답 구조: data.results.users[].name + .address
+    const users = data?.results?.users || data?.users || [];
+    const match = users.find(u =>
+      (u.name || u.username || u.displayName || '').toLowerCase() === name.toLowerCase()
+    );
+    if (match?.address?.startsWith('0x')) {
+      console.log('[resolve] ✅ portal global search 히트:', match.address);
+      return match.address;
+    }
 
-      // 응답에서 주소 추출 (다양한 구조 처리)
-      const extract = (obj) => {
-        if (!obj) return null;
-        const addr = obj.address || obj.walletAddress || obj.agwAddress || obj.wallet;
-        if (addr?.startsWith('0x')) return addr;
-        // 배열이면 닉네임 매칭
-        const list = Array.isArray(obj) ? obj : (obj.users || obj.results || obj.data || obj.items || []);
-        if (Array.isArray(list)) {
-          const match = list.find(u =>
-            (u.username || u.name || u.displayName || u.handle || '').toLowerCase() === name.toLowerCase()
-          );
-          if (match) return match.address || match.walletAddress || match.agwAddress;
-        }
-        return null;
-      };
-
-      const addr = extract(data) || extract(data?.data) || extract(data?.user) || extract(data?.result);
-      if (addr) { console.log('[resolve] ✅ backend.portal 히트:', param, addr); return addr; }
-    } catch(e) { console.warn('[resolve] backend', param, e.message); }
-  }
-
-  // 3순위: portal.abs.xyz Next.js API 라우트
-  const nextEndpoints = [
-    `https://portal.abs.xyz/api/search?q=${encodeURIComponent(name)}&type=users`,
-    `https://portal.abs.xyz/api/users?search=${encodeURIComponent(name)}`,
-    `https://api.abs.xyz/v1/search/users?query=${encodeURIComponent(name)}`,
-  ];
-  for (const url of nextEndpoints) {
-    try {
-      const data = await pfetch(url);
-      const list = data?.users || data?.results || data?.items || (Array.isArray(data) ? data : []);
-      const match = list.find?.(u =>
-        (u.username || u.name || u.displayName || '').toLowerCase() === name.toLowerCase()
-      );
-      if (match) {
-        const addr = match.address || match.walletAddress;
-        if (addr?.startsWith('0x')) { console.log('[resolve] ✅ next API 히트:', addr); return addr; }
-      }
-    } catch(e) { /* skip */ }
+  } catch(e) {
+    console.warn('[resolve] global search 실패:', e.message);
   }
 
   return null;
