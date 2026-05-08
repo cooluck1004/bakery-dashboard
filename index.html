@@ -258,7 +258,7 @@
     <span class="logo-icon">🍪</span>
     <div>
       <div class="logo-text">Rugpull Bakery — P&L Dashboard</div>
-      <div class="logo-sub">Live stats · Gas analysis · P&L calculator</div>
+      <div class="logo-sub">Live stats · Gas analysis · P&L calculator · <span id="proxyLabel" style="color:#f59e0b"></span></div>
     </div>
   </div>
   <div id="statusPill">
@@ -282,8 +282,8 @@
         <input class="ipt-addr" id="walletAddr" type="text" placeholder="0x...">
       </div>
       <div class="field">
-        <label>Prize pool (ETH)</label>
-        <input class="ipt-num" id="prizePool" type="number" placeholder="수동 입력" step="0.001">
+        <label>Prize pool <span id="prizeAutoLabel" style="color:#f59e0b;font-size:9px;margin-left:4px"></span></label>
+        <input class="ipt-num" id="prizePool" type="number" placeholder="자동 조회 중..." step="0.001">
       </div>
       <button class="btn primary" id="btnRefresh" onclick="fetchAll()">
         ↻ Refresh
@@ -389,31 +389,53 @@
 </main>
 
 <script>
-const PROXY      = 'https://corsproxy.io/?url=';
-const BAKERY_API = 'https://www.rugpullbakery.com/api/trpc/';
-const ABSCAN_API = 'https://api.abscan.org/api';
-const CGECKO     = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+const BAKERY_API  = 'https://www.rugpullbakery.com/api/trpc/';
+const ABSCAN_API  = 'https://api.abscan.org/api';
+const CGECKO      = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
 const BAKERY_ADDR = '0xfeb79a841d69c08afcdc7b2beec8a6fbbe46c455';
 const BOOST_ADDR  = '0x4f97015601863c256892e0a5e2710b48e149948c';
 const LB_BUCKET   = 0.30;
 const PAGE_SIZE   = 10000;
 
+// CORS 프록시 목록 — 순서대로 시도, 실패하면 다음으로
+const PROXIES = [
+  { name: 'corsproxy.io',   wrap: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),             parse: r => r.json() },
+  { name: 'allorigins',     wrap: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),     parse: r => r.json() },
+  { name: 'htmldriven',     wrap: url => 'https://cors.eu.org/' + url,                                        parse: r => r.json() },
+];
+let activeProxyIdx = 0;
+
+async function pfetch(url) {
+  let lastErr;
+  // 현재 프록시부터 순서대로 시도
+  for (let i = 0; i < PROXIES.length; i++) {
+    const idx = (activeProxyIdx + i) % PROXIES.length;
+    const proxy = PROXIES[idx];
+    try {
+      const r = await fetch(proxy.wrap(url));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await proxy.parse(r.clone());
+      activeProxyIdx = idx; // 성공한 프록시 기억
+      return data;
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[proxy] ${proxy.name} 실패:`, e.message);
+    }
+  }
+  throw new Error('모든 프록시 실패: ' + lastErr?.message);
+}
+
 let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0;
 let autoOn = false, cdSec = 0, cdTimer = null;
 let logVisible = false;
-
-// ── Helpers ──────────────────────────────────────────────────
-
-function pfetch(url) {
-  return fetch(PROXY + encodeURIComponent(url))
-    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
-}
 
 function setStatus(txt, cls) {
   const p = document.getElementById('statusPill');
   p.className = cls || '';
   document.getElementById('sDot').className = 'dot' + (cls === 'live' ? ' pulse' : '');
   document.getElementById('sTxt').textContent = txt;
+  const pl = document.getElementById('proxyLabel');
+  if (pl) pl.textContent = cls === 'live' ? 'proxy: ' + PROXIES[activeProxyIdx].name : '';
 }
 
 function showErr(msg) {
@@ -467,10 +489,76 @@ async function fetchETH() {
     ethPrice = d?.ethereum?.usd || 0;
   } catch {
     try {
-      const r2 = await fetch(PROXY + encodeURIComponent(CGECKO));
-      const d2 = await r2.json();
+      const d2 = await pfetch(CGECKO);
       ethPrice = d2?.ethereum?.usd || 0;
     } catch { ethPrice = 0; }
+  }
+}
+
+// ── Prize pool (auto-fetch) ─────────────────────────────────
+
+async function fetchPrizePool() {
+  // 이미 수동 입력돼 있으면 건드리지 않음
+  const manualVal = parseFloat(document.getElementById('prizePool').value);
+  const label = document.getElementById('prizeAutoLabel');
+
+  try {
+    // 1순위: leaderboard.getActiveSeason
+    const inp = JSON.stringify({ json: {} });
+    const data = await pfetch(BAKERY_API + 'leaderboard.getActiveSeason?input=' + encodeURIComponent(inp));
+    const season = data?.result?.data?.json;
+
+    if (season) {
+      // prizePool이 wei 단위(bigint string)일 수 있음 → ETH 변환
+      let poolETH = null;
+      if (season.prizePool != null) {
+        const raw = Number(season.prizePool);
+        poolETH = raw > 1e15 ? raw / 1e18 : raw; // wei vs ETH 자동 판단
+      } else if (season.prizePoolUsd != null && ethPrice > 0) {
+        poolETH = season.prizePoolUsd / ethPrice;
+      } else if (season.totalPrize != null) {
+        const raw = Number(season.totalPrize);
+        poolETH = raw > 1e15 ? raw / 1e18 : raw;
+      }
+
+      if (poolETH != null && poolETH > 0 && !manualVal) {
+        document.getElementById('prizePool').value = poolETH.toFixed(4);
+        if (label) label.textContent = '● 자동';
+        return;
+      }
+    }
+  } catch(e) {
+    console.warn('[prizePool] getActiveSeason 실패:', e.message);
+  }
+
+  try {
+    // 2순위: /agent.json
+    const agentData = await pfetch('https://www.rugpullbakery.com/agent.json');
+    let poolETH = null;
+
+    if (agentData?.prizePool != null) {
+      const raw = Number(agentData.prizePool);
+      poolETH = raw > 1e15 ? raw / 1e18 : raw;
+    } else if (agentData?.season?.prizePool != null) {
+      const raw = Number(agentData.season.prizePool);
+      poolETH = raw > 1e15 ? raw / 1e18 : raw;
+    } else if (agentData?.prizePoolUsd != null && ethPrice > 0) {
+      poolETH = agentData.prizePoolUsd / ethPrice;
+    }
+
+    if (poolETH != null && poolETH > 0 && !manualVal) {
+      document.getElementById('prizePool').value = poolETH.toFixed(4);
+      if (label) label.textContent = '● 자동';
+      return;
+    }
+  } catch(e) {
+    console.warn('[prizePool] agent.json 실패:', e.message);
+  }
+
+  // 둘 다 실패 → 수동 입력 안내
+  if (!manualVal) {
+    if (label) label.textContent = '수동 입력';
+    document.getElementById('prizePool').placeholder = '직접 입력 (ETH)';
   }
 }
 
@@ -638,6 +726,7 @@ async function fetchAll() {
       pfetch(BAKERY_API + 'leaderboard.getBakeryById?input=' + encodeURIComponent(inp)),
       pfetch(BAKERY_API + 'leaderboard.getBakeryEffects?input=' + encodeURIComponent(inp)),
       fetchETH(),
+      fetchPrizePool(),
     ]);
 
     const b = bakeryData?.result?.data?.json;
