@@ -5,301 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🍪 Rugpull Bakery — P&L Dashboard</title>
 <style>
-  :root {
-    --bg:       #0f0f0f;
-    --bg2:      #161616;
-    --bg3:      #1e1e1e;
-    --border:   #2a2a2a;
-    --border2:  #333;
-    --text:     #e8e8e8;
-    --text2:    #888;
-    --text3:    #555;
-    --green:    #22c55e;
-    --green-dim:#15803d;
-    --red:      #ef4444;
-    --amber:    #f59e0b;
-    --blue:     #3b82f6;
-    --mono:     'Courier New', Courier, monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 13px;
-    min-height: 100vh;
-  }
+:root {
+  --bg:#0f0f0f; --bg2:#161616; --bg3:#1e1e1e;
+  --border:#2a2a2a; --border2:#383838;
+  --text:#e8e8e8; --text2:#888; --text3:#555;
+  --green:#22c55e; --green-dim:#15803d; --green-bg:#052e16;
+  --red:#ef4444; --red-dim:#7f1d1d; --red-bg:#1a0000;
+  --amber:#f59e0b; --amber-bg:#1a1000; --amber-dim:#854d0e;
+  --mono:'Courier New',Courier,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;background:var(--bg);z-index:10}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{font-size:22px}
+.logo-text{font-size:15px;font-weight:600}
+.logo-sub{font-size:11px;color:var(--text2);margin-top:1px}
+#statusPill{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid var(--border2);color:var(--text2)}
+#statusPill.live{border-color:var(--green-dim);color:var(--green)}
+#statusPill.err{border-color:var(--red-dim);color:var(--red)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.dot.pulse{animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+main{max-width:1100px;margin:0 auto;padding:20px 24px}
 
-  /* ── Header ── */
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 10;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon { font-size: 22px; }
-  .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -.2px; }
-  .logo-sub { font-size: 11px; color: var(--text2); }
-  #statusPill {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; padding: 4px 12px;
-    border-radius: 99px; border: 1px solid var(--border2);
-    color: var(--text2);
-  }
-  #statusPill.live { border-color: var(--green-dim); color: var(--green); }
-  #statusPill.err  { border-color: #7f1d1d; color: var(--red); }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .dot.pulse { animation: pulse 1.8s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+/* Config */
+.config-bar{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+.config-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.config-inputs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;color:var(--text2)}
+input[type=text],input[type=number]{height:34px;padding:0 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+input:focus{border-color:var(--amber)}
+.ipt-player{width:300px;max-width:100%}
+.ipt-id{width:100px}
+.ipt-num{width:130px}
+.btn{height:34px;padding:0 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
+.btn:hover{background:#252525;border-color:#444}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:#1a1a00;border-color:var(--amber);color:var(--amber)}
+.btn.primary:hover{background:#252500}
+.btn.active{border-color:var(--green-dim);color:var(--green)}
+.cd-txt{font-size:11px;color:var(--text3);min-width:30px;font-family:var(--mono)}
 
-  /* ── Layout ── */
-  main { max-width: 1100px; margin: 0 auto; padding: 20px 24px; }
+/* Notice box (error / info) */
+.notice{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;display:none}
+.notice.err{background:var(--red-bg);border:1px solid var(--red-dim);color:var(--red)}
+.notice.info{background:var(--green-bg);border:1px solid var(--green-dim);color:var(--green)}
+.notice.warn{background:var(--amber-bg);border:1px solid var(--amber-dim);color:var(--amber)}
 
-  /* ── Config bar ── */
-  .config-bar {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
-  }
-  .config-title {
-    font-size: 10px; font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
-  }
-  .config-inputs {
-    display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
-  }
-  .field { display: flex; flex-direction: column; gap: 4px; }
-  .field label { font-size: 10px; color: var(--text2); }
-  input[type=text], input[type=number] {
-    height: 34px; padding: 0 10px;
-    background: var(--bg3); border: 1px solid var(--border2);
-    border-radius: 6px; color: var(--text);
-    font-family: var(--mono); font-size: 12px;
-    outline: none; transition: border-color .15s;
-  }
-  input[type=text]:focus, input[type=number]:focus {
-    border-color: var(--amber);
-  }
-  .ipt-id   { width: 80px; }
-  .ipt-addr { width: 300px; max-width: 100%; }
-  .ipt-num  { width: 120px; }
-  .btn {
-    height: 34px; padding: 0 14px;
-    background: var(--bg3); border: 1px solid var(--border2);
-    border-radius: 6px; color: var(--text);
-    font-size: 12px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px;
-    transition: background .15s, border-color .15s;
-    white-space: nowrap;
-  }
-  .btn:hover { background: #252525; border-color: #444; }
-  .btn:disabled { opacity: .4; cursor: default; }
-  .btn.primary { background: #1a1a00; border-color: var(--amber); color: var(--amber); }
-  .btn.primary:hover { background: #252500; }
-  .btn.active { border-color: var(--green-dim); color: var(--green); }
-  .cd-txt { font-size: 11px; color: var(--text3); min-width: 30px; font-family: var(--mono); }
+/* P&L strip */
+.pnl-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
+.metric .mv{font-size:14px;font-weight:600;font-family:var(--mono);line-height:1.3}
+.metric .ml{font-size:10px;color:var(--text3);margin-top:4px}
+.mv.g{color:var(--green)}.mv.r{color:var(--red)}.mv.a{color:var(--amber)}.mv.m{color:var(--text3)}
 
-  /* ── Error box ── */
-  .err-box {
-    background: #1a0000; border: 1px solid #4a0000;
-    border-radius: 8px; padding: 10px 14px;
-    color: var(--red); font-size: 12px;
-    margin-bottom: 14px; display: none;
-    transition: background .2s, color .2s, border-color .2s;
-  }
+/* Gas card */
+.gas-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px}
+.card-h{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge-sm{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;background:var(--bg3);color:var(--text2);border:1px solid var(--border);padding:2px 8px;border-radius:99px}
+.gas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.gas-item{text-align:center}
+.gas-item .gv{font-size:14px;font-weight:600;font-family:var(--mono);color:var(--red)}
+.gas-item .gl{font-size:10px;color:var(--text3);margin-top:3px}
+.progress-wrap{margin-bottom:8px}
+.progress-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:5px}
+.progress-track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--red);transition:width .5s ease}
+.gas-log-btn{font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;padding:0}
+.gas-log{margin-top:8px;max-height:160px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;display:none}
+.gas-log.open{display:block}
 
-  /* ── P&L strip ── */
-  .pnl-strip {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px; margin-bottom: 14px;
-  }
-  .metric {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 14px; text-align: center;
-  }
-  .metric .mv {
-    font-size: 15px; font-weight: 600;
-    font-family: var(--mono); line-height: 1.3;
-    color: var(--text);
-  }
-  .metric .ml { font-size: 10px; color: var(--text3); margin-top: 4px; }
-  .mv.g { color: var(--green) !important; }
-  .mv.r { color: var(--red)   !important; }
-  .mv.a { color: var(--amber) !important; }
-  .mv.m { color: var(--text3) !important; }
+/* Bottom grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.rl{font-size:11px;color:var(--text2)}
+.rv{font-size:12px;font-weight:500;font-family:var(--mono)}
+.rv.g{color:var(--green)}.rv.r{color:var(--red)}.rv.a{color:var(--amber)}.rv.m{color:var(--text3)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.tag{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500}
+.tag.g{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim)}
+.tag.r{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
+.tag.a{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim)}
+.tag.n{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
 
-  /* ── Gas card ── */
-  .gas-card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 18px; margin-bottom: 14px;
-  }
-  .card-h {
-    font-size: 10px; font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--text3);
-    margin-bottom: 12px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-badge {
-    font-size: 10px; font-weight: 400; letter-spacing: 0;
-    text-transform: none; color: var(--text2);
-    background: var(--bg3); padding: 2px 8px;
-    border-radius: 99px; border: 1px solid var(--border);
-  }
-  .gas-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-    margin-bottom: 12px;
-  }
-  .gas-item { text-align: center; }
-  .gas-item .gv {
-    font-size: 14px; font-weight: 600;
-    font-family: var(--mono); color: var(--red);
-  }
-  .gas-item .gl { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.spinner{width:12px;height:12px;border:1.5px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{font-size:10px;color:var(--text3)}
+.ts{font-size:10px;color:var(--text3);text-align:right;margin-top:10px}
+.team-badge{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim);padding:1px 8px;border-radius:99px;margin-left:6px;display:none}
 
-  .progress-wrap { margin-bottom: 8px; }
-  .progress-lbl {
-    display: flex; justify-content: space-between;
-    font-size: 10px; color: var(--text3); margin-bottom: 5px;
-  }
-  .progress-track {
-    height: 5px; background: var(--bg3);
-    border-radius: 3px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 3px;
-    background: var(--red); transition: width .5s ease;
-  }
-
-  /* ── Gas log ── */
-  .gas-log-toggle {
-    font-size: 11px; color: var(--text2); cursor: pointer;
-    text-decoration: underline; text-underline-offset: 2px;
-    background: none; border: none; padding: 0;
-  }
-  .gas-log {
-    margin-top: 10px; max-height: 160px; overflow-y: auto;
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 6px; padding: 8px 10px;
-    font-family: var(--mono); font-size: 11px;
-    color: var(--text2); line-height: 1.8;
-    display: none;
-  }
-  .gas-log.open { display: block; }
-
-  /* ── Main grid ── */
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 18px;
-  }
-  .row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 5px 0; border-bottom: 1px solid var(--border);
-  }
-  .row:last-child { border-bottom: none; }
-  .rl { font-size: 11px; color: var(--text2); }
-  .rv { font-size: 12px; font-weight: 500; font-family: var(--mono); }
-  .rv.g { color: var(--green); }
-  .rv.r { color: var(--red); }
-  .rv.a { color: var(--amber); }
-  .rv.m { color: var(--text3); }
-  .tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
-  .tag {
-    font-size: 10px; padding: 2px 8px; border-radius: 99px;
-    font-weight: 500;
-  }
-  .tag.g { background: #052e16; color: var(--green); border: 1px solid var(--green-dim); }
-  .tag.r { background: #1a0000; color: var(--red);   border: 1px solid #7f1d1d; }
-  .tag.a { background: #1a1000; color: var(--amber); border: 1px solid #854d0e; }
-  .tag.n { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
-
-  /* ── Spinner ── */
-  .spinner {
-    width: 12px; height: 12px;
-    border: 1.5px solid var(--border2);
-    border-top-color: var(--text);
-    border-radius: 50%;
-    animation: spin .6s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── Note ── */
-  .note { font-size: 10px; color: var(--text3); }
-  .ts { font-size: 10px; color: var(--text3); text-align: right; margin-top: 12px; }
-
-  /* ── Responsive ── */
-  @media (max-width: 700px) {
-    main { padding: 14px 14px; }
-    .pnl-strip { grid-template-columns: repeat(3, 1fr); }
-    .grid2 { grid-template-columns: 1fr; }
-    .gas-grid { grid-template-columns: repeat(2, 1fr); }
-    .ipt-addr { width: 100%; }
-  }
-  @media (max-width: 420px) {
-    .pnl-strip { grid-template-columns: repeat(2, 1fr); }
-  }
+@media(max-width:700px){
+  main{padding:14px}
+  .pnl-strip{grid-template-columns:repeat(3,1fr)}
+  .grid2{grid-template-columns:1fr}
+  .gas-grid{grid-template-columns:repeat(2,1fr)}
+  .ipt-player{width:100%}
+}
+@media(max-width:420px){.pnl-strip{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <span class="logo-icon">🍪</span>
     <div>
       <div class="logo-text">Rugpull Bakery — P&L Dashboard</div>
-      <div class="logo-sub">Live stats · Gas analysis · P&L calculator · <span id="proxyLabel" style="color:#f59e0b"></span></div>
+      <div class="logo-sub">Live stats · Gas analysis · P&L calculator · <span id="proxyLabel" style="color:var(--amber)"></span></div>
     </div>
   </div>
-  <div id="statusPill">
-    <span class="dot" id="sDot"></span>
-    <span id="sTxt">대기 중</span>
-  </div>
+  <div id="statusPill"><span class="dot" id="sDot"></span><span id="sTxt">대기 중</span></div>
 </header>
 
 <main>
-
-  <!-- Config -->
   <div class="config-bar">
     <div class="config-title">⚙ 설정</div>
     <div class="config-inputs">
-      <div class="field" style="flex:1;min-width:200px">
+      <div class="field" style="flex:1;min-width:220px">
         <label>닉네임 또는 지갑 주소 (0x...)</label>
-        <input class="ipt-addr" id="playerInput" type="text" placeholder="cooluck  또는  0xb98F...">
+        <input class="ipt-player" id="playerInput" type="text" placeholder="cooluck  또는  0xb98F...">
       </div>
       <div class="field">
-        <label>Bakery ID <span style="color:var(--text3);font-size:9px">(선택 · 직접 입력 시 우선)</span></label>
+        <label>Bakery ID <span style="color:var(--text3);font-size:9px">선택 · 직접 입력 시 우선</span></label>
         <input class="ipt-id" id="bId" type="number" placeholder="" min="1">
       </div>
       <div class="field">
-        <label>Prize pool (ETH) <span id="prizeAutoLabel" style="color:#f59e0b;font-size:9px;margin-left:4px"></span></label>
+        <label>Prize pool (ETH) <span id="prizeAutoLabel" style="color:var(--amber);font-size:9px;margin-left:3px"></span></label>
         <input class="ipt-num" id="prizePool" type="number" placeholder="자동 조회 중..." step="0.001">
       </div>
-      <button class="btn primary" id="btnRefresh" onclick="fetchAll()">
-        ↻ Refresh
-      </button>
-      <button class="btn" id="btnAuto" onclick="toggleAuto()">
-        ▶ Auto 30s
-      </button>
+      <button class="btn primary" id="btnRefresh" onclick="fetchAll()">↻ Refresh</button>
+      <button class="btn" id="btnAuto" onclick="toggleAuto()">▶ Auto 30s</button>
       <span class="cd-txt" id="cdTxt"></span>
     </div>
   </div>
 
-  <!-- Error -->
-  <div id="errBox" class="err-box"></div>
+  <div id="noticeBox" class="notice"></div>
 
-  <!-- P&L Strip -->
   <div class="pnl-strip">
     <div class="metric"><div class="mv" id="p-eth">—</div><div class="ml">ETH price</div></div>
     <div class="metric"><div class="mv" id="p-pool">—</div><div class="ml">Prize pool</div></div>
@@ -308,74 +152,37 @@
     <div class="metric"><div class="mv" id="p-pnl">—</div><div class="ml">P&L (ETH)</div></div>
   </div>
 
-  <!-- Gas Card -->
   <div class="gas-card">
-    <div class="card-h">
-      🔥 Gas Cost 분석
-      <span class="card-badge" id="txCountBadge">주소 입력 대기</span>
-    </div>
+    <div class="card-h">🔥 Gas Cost 분석 <span class="badge-sm" id="txCountBadge">주소 입력 대기</span></div>
     <div class="gas-grid">
-      <div class="gas-item">
-        <div class="gv" id="g-total">—</div>
-        <div class="gl">총 가스비 (ETH)</div>
-      </div>
-      <div class="gas-item">
-        <div class="gv" id="g-bake">—</div>
-        <div class="gl">Bake 가스 (ETH)</div>
-      </div>
-      <div class="gas-item">
-        <div class="gv" id="g-boost">—</div>
-        <div class="gl">Boost 가스 (ETH)</div>
-      </div>
-      <div class="gas-item">
-        <div class="gv" style="color:var(--text2)" id="g-usd">—</div>
-        <div class="gl">총 가스비 (USD)</div>
-      </div>
+      <div class="gas-item"><div class="gv" id="g-total">—</div><div class="gl">총 가스비 (ETH)</div></div>
+      <div class="gas-item"><div class="gv" id="g-bake">—</div><div class="gl">Bake 가스 (ETH)</div></div>
+      <div class="gas-item"><div class="gv" id="g-boost">—</div><div class="gl">Boost 가스 (ETH)</div></div>
+      <div class="gas-item"><div class="gv" style="color:var(--text2)" id="g-usd">—</div><div class="gl">총 가스비 (USD)</div></div>
     </div>
     <div class="progress-wrap" id="gasProgress" style="display:none">
-      <div class="progress-lbl">
-        <span>가스비 / 예상 수익</span>
-        <span id="gasRatioPct">—</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="gasFill" style="width:0%"></div>
-      </div>
+      <div class="progress-lbl"><span>가스비 / 예상 수익</span><span id="gasRatioPct">—</span></div>
+      <div class="progress-track"><div class="progress-fill" id="gasFill" style="width:0%"></div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
       <span class="note" id="gasNote">지갑 주소를 입력하면 abscan API로 전체 기간 자동 집계합니다.</span>
-      <button class="gas-log-toggle" onclick="toggleLog()" id="logBtn" style="display:none">
-        트랜잭션 로그 보기 ▾
-      </button>
+      <button class="gas-log-btn" onclick="toggleLog()" id="logBtn" style="display:none">트랜잭션 로그 보기 ▾</button>
     </div>
     <div class="gas-log" id="gasLog"></div>
   </div>
 
-  <!-- Live + Info -->
   <div class="grid2">
     <div class="card">
       <div class="card-h">🍰 Live state</div>
       <div class="row"><span class="rl">Cookie balance</span><span class="rv" id="v-cookies">—</span></div>
       <div class="row"><span class="rl">Multiplier</span><span class="rv" id="v-mult">—</span></div>
-      <div class="row">
-        <span class="rl">Active boosts</span>
-        <div class="tags" id="v-boosts"><span class="rv m">—</span></div>
-      </div>
-      <div class="row">
-        <span class="rl">Debuffs</span>
-        <div class="tags" id="v-debuffs"><span class="rv m">—</span></div>
-      </div>
-      <div class="row">
-        <span class="rl">Cooldowns</span>
-        <div class="tags" id="v-cooldowns"><span class="rv m">—</span></div>
-      </div>
-      <div class="row">
-        <span class="rl">Pending VRF</span>
-        <div class="tags" id="v-pending"><span class="rv m">—</span></div>
-      </div>
+      <div class="row"><span class="rl">Active boosts</span><div class="tags" id="v-boosts"><span class="rv m">—</span></div></div>
+      <div class="row"><span class="rl">Debuffs</span><div class="tags" id="v-debuffs"><span class="rv m">—</span></div></div>
+      <div class="row"><span class="rl">Cooldowns</span><div class="tags" id="v-cooldowns"><span class="rv m">—</span></div></div>
+      <div class="row"><span class="rl">Pending VRF</span><div class="tags" id="v-pending"><span class="rv m">—</span></div></div>
     </div>
-
     <div class="card">
-      <div class="card-h">🏪 Bakery info <span id="teamBadge" style="display:none;font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;background:#1a1000;color:var(--amber);border:1px solid #854d0e;padding:1px 7px;border-radius:99px;margin-left:4px"></span></div>
+      <div class="card-h">🏪 Bakery info <span class="team-badge" id="teamBadge"></span></div>
       <div class="row"><span class="rl">Name</span><span class="rv" id="v-name">—</span></div>
       <div class="row"><span class="rl">Rank</span><span class="rv a" id="v-rank">—</span></div>
       <div class="row"><span class="rl">Score</span><span class="rv" id="v-score">—</span></div>
@@ -389,7 +196,10 @@
   <div class="ts" id="lastUpdated"></div>
 </main>
 
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.0</div>
+
 <script>
+// ── Constants ────────────────────────────────────────────────
 const BAKERY_API  = 'https://www.rugpullbakery.com/api/trpc/';
 const ABSCAN_API  = 'https://api.abscan.org/api';
 const CGECKO      = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
@@ -398,307 +208,262 @@ const BOOST_ADDR  = '0x4f97015601863c256892e0a5e2710b48e149948c';
 const LB_BUCKET   = 0.30;
 const PAGE_SIZE   = 10000;
 
-// CORS 프록시 목록 — 순서대로 시도, 실패하면 다음으로
 const PROXIES = [
-  { name: 'corsproxy.io',   wrap: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),             parse: r => r.json() },
-  { name: 'allorigins',     wrap: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),     parse: r => r.json() },
-  { name: 'htmldriven',     wrap: url => 'https://cors.eu.org/' + url,                                        parse: r => r.json() },
+  url => 'https://corsproxy.io/?url='                          + encodeURIComponent(url),
+  url => 'https://api.allorigins.win/raw?url='                 + encodeURIComponent(url),
+  url => 'https://cors.eu.org/'                                + url,
 ];
-let activeProxyIdx = 0;
+let proxyIdx = 0;
 
+// ── State ────────────────────────────────────────────────────
+let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0;
+let autoOn = false, cdSec = 0, cdTimer = null, logVisible = false;
+
+// ── Proxy fetch ──────────────────────────────────────────────
 async function pfetch(url) {
-  let lastErr;
-  // 현재 프록시부터 순서대로 시도
   for (let i = 0; i < PROXIES.length; i++) {
-    const idx = (activeProxyIdx + i) % PROXIES.length;
-    const proxy = PROXIES[idx];
+    const idx = (proxyIdx + i) % PROXIES.length;
     try {
-      const r = await fetch(proxy.wrap(url));
+      const r = await fetch(PROXIES[idx](url));
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await proxy.parse(r.clone());
-      activeProxyIdx = idx; // 성공한 프록시 기억
+      const data = await r.json();
+      proxyIdx = idx;
+      document.getElementById('proxyLabel').textContent = ['corsproxy.io','allorigins','cors.eu.org'][idx];
       return data;
-    } catch (e) {
-      lastErr = e;
-      console.warn(`[proxy] ${proxy.name} 실패:`, e.message);
+    } catch(e) {
+      console.warn('[proxy' + idx + '] ' + e.message);
     }
   }
-  throw new Error('모든 프록시 실패: ' + lastErr?.message);
+  throw new Error('모든 프록시 실패 — 잠시 후 다시 시도해 주세요');
 }
 
-let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0;
-let autoOn = false, cdSec = 0, cdTimer = null;
-let logVisible = false;
-
+// ── UI helpers ───────────────────────────────────────────────
 function setStatus(txt, cls) {
-  const p = document.getElementById('statusPill');
-  p.className = cls || '';
+  document.getElementById('statusPill').className = cls || '';
   document.getElementById('sDot').className = 'dot' + (cls === 'live' ? ' pulse' : '');
   document.getElementById('sTxt').textContent = txt;
-  const pl = document.getElementById('proxyLabel');
-  if (pl) pl.textContent = cls === 'live' ? 'proxy: ' + PROXIES[activeProxyIdx].name : '';
 }
 
-function showErr(msg) {
-  const b = document.getElementById('errBox');
+function notice(msg, type) {
+  const b = document.getElementById('noticeBox');
+  if (!msg) { b.style.display = 'none'; return; }
+  b.className = 'notice ' + (type || 'err');
+  b.textContent = (type === 'info' ? '✓ ' : type === 'warn' ? '⚠ ' : '⚠ ') + msg;
   b.style.display = 'block';
-  b.textContent = '⚠ ' + msg;
 }
-function hideErr() { document.getElementById('errBox').style.display = 'none'; }
 
 function sv(id, txt, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
+  const el = document.getElementById(id); if (!el) return;
   if (cls !== undefined) el.className = 'rv ' + (cls || '');
   el.textContent = txt;
 }
 function smv(id, txt, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
+  const el = document.getElementById(id); if (!el) return;
   if (cls !== undefined) el.className = 'mv ' + (cls || '');
   el.textContent = txt;
 }
 function setTags(id, items, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!items || !items.length) {
-    el.innerHTML = '<span class="rv m">none</span>';
-    return;
-  }
+  const el = document.getElementById(id); if (!el) return;
+  if (!items || !items.length) { el.innerHTML = '<span class="rv m">none</span>'; return; }
   el.innerHTML = items.map(n => `<span class="tag ${cls}">${n}</span>`).join('');
 }
 function fmtC(n)   { return Math.floor(n).toLocaleString('ko-KR'); }
 function fmtE(n,d) { return n.toFixed(d ?? 5); }
-function fmtUSD(n) {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+function fmtUSD(n) { return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
 
 function toggleLog() {
   logVisible = !logVisible;
   document.getElementById('gasLog').className = 'gas-log' + (logVisible ? ' open' : '');
-  document.getElementById('logBtn').textContent = logVisible
-    ? '트랜잭션 로그 닫기 ▴'
-    : '트랜잭션 로그 보기 ▾';
+  document.getElementById('logBtn').textContent = logVisible ? '트랜잭션 로그 닫기 ▴' : '트랜잭션 로그 보기 ▾';
 }
 
-// ── Username → Address resolver ─────────────────────────────
-
+// ── Username → Address ───────────────────────────────────────
 async function resolveUsername(username) {
-  const name = username.trim().toLowerCase();
+  const name = username.trim();
+  console.log('[resolve] 닉네임 조회 시도:', name);
 
-  // 1순위: rugpullbakery player search
-  const candidates = [
+  // 1. rugpullbakery search endpoints
+  const rbEndpoints = [
     'leaderboard.searchPlayers',
     'leaderboard.getPlayerByUsername',
     'leaderboard.searchBakeries',
+    'leaderboard.getTopBakeries',
   ];
-  for (const ep of candidates) {
+  for (const ep of rbEndpoints) {
     try {
-      const inp = JSON.stringify({ json: { query: username, username, name } });
+      const inp = JSON.stringify({ json: { query: name, username: name, search: name, limit: 10 } });
       const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(inp));
       const result = data?.result?.data?.json;
-      if (Array.isArray(result)) {
-        const match = result.find(r =>
-          (r.username || r.name || r.playerName || '').toLowerCase() === name
-        );
-        if (match?.address || match?.walletAddress || match?.ownerAddress) {
-          return match.address || match.walletAddress || match.ownerAddress;
-        }
-      } else if (result?.address) {
-        return result.address;
+      const list = Array.isArray(result) ? result : result?.items || result?.players || result?.bakeries || [];
+      const match = list.find(r =>
+        (r.username || r.name || r.playerName || r.ownerName || '').toLowerCase() === name.toLowerCase()
+      );
+      if (match) {
+        const addr = match.address || match.walletAddress || match.ownerAddress;
+        if (addr) { console.log('[resolve] ' + ep + ' 성공:', addr); return addr; }
       }
-    } catch(e) { /* 다음 시도 */ }
+    } catch(e) { console.warn('[resolve] ' + ep + ':', e.message); }
   }
 
-  // 2순위: Abstract public profile API
+  // 2. Abstract public profile API
   const absEndpoints = [
-    'https://api.abs.xyz/v1/accounts/resolve?username=' + encodeURIComponent(username),
-    'https://api.abs.xyz/v1/users/' + encodeURIComponent(username),
-    'https://api.abs.xyz/v1/profiles/' + encodeURIComponent(username),
+    'https://api.abs.xyz/v1/accounts/resolve?username=' + encodeURIComponent(name),
+    'https://api.abs.xyz/v1/users/' + encodeURIComponent(name),
+    'https://api.abs.xyz/v1/profiles/' + encodeURIComponent(name),
+    'https://api.abs.xyz/accounts/' + encodeURIComponent(name),
   ];
   for (const url of absEndpoints) {
     try {
       const data = await pfetch(url);
       const addr = data?.address || data?.walletAddress || data?.agwAddress || data?.data?.address;
-      if (addr && addr.startsWith('0x')) return addr;
-    } catch(e) { /* 다음 시도 */ }
+      if (addr && addr.startsWith('0x')) { console.log('[resolve] abs.xyz 성공:', addr); return addr; }
+    } catch(e) { console.warn('[resolve] abs.xyz:', e.message); }
   }
 
-  return null; // 모두 실패
+  return null;
+}
+
+// ── Find bakery from address ─────────────────────────────────
+async function findBakeryId(address) {
+  console.log('[bakery] 팀 베이커리 조회:', address);
+
+  // 다양한 input 포맷 시도
+  const inputs = [
+    { address },
+    { playerAddress: address },
+    { walletAddress: address },
+    { ownerAddress: address },
+  ];
+
+  const endpoints = [
+    'leaderboard.getPlayerBakery',
+    'leaderboard.getBakeryByOwner',
+    'leaderboard.getMyBakeryInit',
+  ];
+
+  for (const ep of endpoints) {
+    for (const jsonBody of inputs) {
+      try {
+        const inp = JSON.stringify({ json: jsonBody });
+        const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(inp));
+        const pb = data?.result?.data?.json;
+        console.log('[bakery] ' + ep, JSON.stringify(pb)?.slice(0, 100));
+        const detectedId = pb?.clanId || pb?.id || pb?.bakeryId || pb?.clan?.id;
+        if (detectedId) return { id: detectedId, name: pb?.name || pb?.clan?.name || '' };
+      } catch(e) { /* 다음 시도 */ }
+    }
+  }
+  return null;
 }
 
 // ── ETH price ────────────────────────────────────────────────
-
 async function fetchETH() {
   try {
     const r = await fetch(CGECKO);
     const d = await r.json();
     ethPrice = d?.ethereum?.usd || 0;
   } catch {
-    try {
-      const d2 = await pfetch(CGECKO);
-      ethPrice = d2?.ethereum?.usd || 0;
-    } catch { ethPrice = 0; }
+    try { const d2 = await pfetch(CGECKO); ethPrice = d2?.ethereum?.usd || 0; }
+    catch { ethPrice = 0; }
   }
 }
 
-// ── Prize pool (auto-fetch) ─────────────────────────────────
-
+// ── Prize pool ───────────────────────────────────────────────
 async function fetchPrizePool() {
-  // 이미 수동 입력돼 있으면 건드리지 않음
   const manualVal = parseFloat(document.getElementById('prizePool').value);
+  if (manualVal > 0) return;
   const label = document.getElementById('prizeAutoLabel');
 
-  try {
-    // 1순위: leaderboard.getActiveSeason
-    const inp = JSON.stringify({ json: {} });
-    const data = await pfetch(BAKERY_API + 'leaderboard.getActiveSeason?input=' + encodeURIComponent(inp));
-    const season = data?.result?.data?.json;
+  const endpoints = ['leaderboard.getActiveSeason', 'leaderboard.getCurrentSeason'];
+  for (const ep of endpoints) {
+    try {
+      const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json: {} })));
+      const season = data?.result?.data?.json;
+      if (!season) continue;
 
-    if (season) {
-      // prizePool이 wei 단위(bigint string)일 수 있음 → ETH 변환
       let poolETH = null;
       if (season.prizePool != null) {
         const raw = Number(season.prizePool);
-        poolETH = raw > 1e15 ? raw / 1e18 : raw; // wei vs ETH 자동 판단
+        poolETH = raw > 1e15 ? raw / 1e18 : raw;
       } else if (season.prizePoolUsd != null && ethPrice > 0) {
         poolETH = season.prizePoolUsd / ethPrice;
       } else if (season.totalPrize != null) {
         const raw = Number(season.totalPrize);
         poolETH = raw > 1e15 ? raw / 1e18 : raw;
       }
-
-      if (poolETH != null && poolETH > 0 && !manualVal) {
+      if (poolETH > 0) {
         document.getElementById('prizePool').value = poolETH.toFixed(4);
         if (label) label.textContent = '● 자동';
         return;
       }
-    }
-  } catch(e) {
-    console.warn('[prizePool] getActiveSeason 실패:', e.message);
+    } catch(e) { console.warn('[prizePool]', e.message); }
   }
 
+  // agent.json 시도
   try {
-    // 2순위: /agent.json
-    const agentData = await pfetch('https://www.rugpullbakery.com/agent.json');
-    let poolETH = null;
-
-    if (agentData?.prizePool != null) {
-      const raw = Number(agentData.prizePool);
-      poolETH = raw > 1e15 ? raw / 1e18 : raw;
-    } else if (agentData?.season?.prizePool != null) {
-      const raw = Number(agentData.season.prizePool);
-      poolETH = raw > 1e15 ? raw / 1e18 : raw;
-    } else if (agentData?.prizePoolUsd != null && ethPrice > 0) {
-      poolETH = agentData.prizePoolUsd / ethPrice;
+    const d = await pfetch('https://www.rugpullbakery.com/agent.json');
+    const raw = d?.prizePool ?? d?.season?.prizePool;
+    if (raw != null) {
+      const n = Number(raw);
+      const eth = n > 1e15 ? n / 1e18 : n;
+      if (eth > 0) {
+        document.getElementById('prizePool').value = eth.toFixed(4);
+        if (label) label.textContent = '● 자동';
+        return;
+      }
     }
+  } catch(e) { console.warn('[prizePool] agent.json:', e.message); }
 
-    if (poolETH != null && poolETH > 0 && !manualVal) {
-      document.getElementById('prizePool').value = poolETH.toFixed(4);
-      if (label) label.textContent = '● 자동';
-      return;
-    }
-  } catch(e) {
-    console.warn('[prizePool] agent.json 실패:', e.message);
-  }
-
-  // 둘 다 실패 → 수동 입력 안내
-  if (!manualVal) {
-    if (label) label.textContent = '수동 입력';
-    document.getElementById('prizePool').placeholder = '직접 입력 (ETH)';
-  }
+  if (label) label.textContent = '수동 입력';
+  document.getElementById('prizePool').placeholder = '직접 입력 (ETH)';
 }
 
-// ── Gas cost (with pagination) ────────────────────────────────
-
+// ── Gas cost (paginated) ─────────────────────────────────────
 async function fetchGasCost(address) {
-  if (!address || !address.startsWith('0x')) return null;
-
-  const noteEl   = document.getElementById('gasNote');
-  const badgeEl  = document.getElementById('txCountBadge');
+  if (!address) return null;
+  const noteEl  = document.getElementById('gasNote');
+  const badgeEl = document.getElementById('txCountBadge');
   noteEl.textContent = '페이지 1 조회 중...';
 
-  let allTxs = [];
-  let page   = 1;
-  let hasMore = true;
-
+  let allTxs = [], page = 1, hasMore = true;
   while (hasMore) {
-    const url = `${ABSCAN_API}?module=account&action=txlist`
-      + `&address=${address}&sort=asc&page=${page}&offset=${PAGE_SIZE}`;
-
-    let data;
+    const url = `${ABSCAN_API}?module=account&action=txlist&address=${address}&sort=asc&page=${page}&offset=${PAGE_SIZE}`;
     try {
-      data = await pfetch(url);
-    } catch (e) {
-      noteEl.textContent = `페이지 ${page} 오류: ${e.message}`;
-      break;
-    }
-
-    if (data.status !== '1' || !Array.isArray(data.result) || data.result.length === 0) {
-      hasMore = false;
-      break;
-    }
-
-    allTxs = allTxs.concat(data.result);
-    noteEl.textContent = `${allTxs.length.toLocaleString()}건 로드됨 (페이지 ${page})...`;
-    badgeEl.textContent = `${allTxs.length.toLocaleString()}건 로드 중...`;
-
-    // 페이지 결과가 PAGE_SIZE보다 작으면 마지막 페이지
-    if (data.result.length < PAGE_SIZE) {
-      hasMore = false;
-    } else {
-      page++;
-      // Rate limit 방지 — 100ms 딜레이
-      await new Promise(r => setTimeout(r, 100));
-    }
+      const data = await pfetch(url);
+      if (data.status !== '1' || !Array.isArray(data.result) || !data.result.length) { hasMore = false; break; }
+      allTxs = allTxs.concat(data.result);
+      noteEl.textContent = allTxs.length.toLocaleString() + '건 로드 중 (페이지 ' + page + ')...';
+      badgeEl.textContent = allTxs.length.toLocaleString() + '건 로드 중...';
+      if (data.result.length < PAGE_SIZE) hasMore = false; else { page++; await new Promise(r => setTimeout(r, 100)); }
+    } catch(e) { noteEl.textContent = '조회 오류: ' + e.message; break; }
   }
-
-  if (!allTxs.length) {
-    noteEl.textContent = '트랜잭션 없음 (주소 확인 필요)';
-    badgeEl.textContent = '0건';
-    return null;
-  }
+  if (!allTxs.length) { noteEl.textContent = '트랜잭션 없음 (주소 확인 필요)'; badgeEl.textContent = '0건'; return null; }
 
   const bakeTxs  = allTxs.filter(tx => tx.to?.toLowerCase() === BAKERY_ADDR);
   const boostTxs = allTxs.filter(tx => tx.to?.toLowerCase() === BOOST_ADDR);
-
   let bakeWei = 0n, boostWei = 0n;
   for (const tx of bakeTxs)  bakeWei  += BigInt(tx.gasUsed || 0) * BigInt(tx.gasPrice || 0);
   for (const tx of boostTxs) boostWei += BigInt(tx.gasUsed || 0) * BigInt(tx.gasPrice || 0);
 
   const totalETH = Number(bakeWei + boostWei) / 1e18;
-  const bakeETH  = Number(bakeWei)  / 1e18;
-  const boostETH = Number(boostWei) / 1e18;
-
   document.getElementById('g-total').textContent = fmtE(totalETH, 5) + ' ETH';
-  document.getElementById('g-bake').textContent  = fmtE(bakeETH,  5) + ' ETH';
-  document.getElementById('g-boost').textContent = fmtE(boostETH, 5) + ' ETH';
+  document.getElementById('g-bake').textContent  = fmtE(Number(bakeWei) / 1e18, 5) + ' ETH';
+  document.getElementById('g-boost').textContent = fmtE(Number(boostWei) / 1e18, 5) + ' ETH';
   document.getElementById('g-usd').textContent   = ethPrice > 0 ? fmtUSD(totalETH * ethPrice) : '—';
 
-  const relCount = bakeTxs.length + boostTxs.length;
-  badgeEl.textContent =
-    `전체 ${allTxs.length.toLocaleString()}건 중 베이커리 ${relCount.toLocaleString()}건`
-    + ` (bake ${bakeTxs.length.toLocaleString()} + boost ${boostTxs.length.toLocaleString()})`
-    + ` · ${page}페이지`;
+  const rel = bakeTxs.length + boostTxs.length;
+  badgeEl.textContent = `전체 ${allTxs.length.toLocaleString()}건 중 베이커리 ${rel}건 (bake ${bakeTxs.length} + boost ${boostTxs.length}) · ${page}p`;
+  noteEl.textContent  = `abscan.org · 총 ${page}페이지 (${allTxs.length.toLocaleString()}건) 조회 완료`;
 
-  noteEl.textContent =
-    `abscan.org 기준 · 총 ${page}페이지 (${allTxs.length.toLocaleString()}건) 조회 완료`;
-
-  // 트랜잭션 로그 (최근 20건)
-  const recentRel = [...bakeTxs, ...boostTxs]
-    .sort((a, b) => Number(b.timeStamp) - Number(a.timeStamp))
-    .slice(0, 20);
-
-  const logEl = document.getElementById('gasLog');
-  logEl.innerHTML = recentRel.map(tx => {
-    const type = tx.to?.toLowerCase() === BAKERY_ADDR ? '🍞 bake ' : '🛒 boost';
-    const gas  = (Number(BigInt(tx.gasUsed || 0) * BigInt(tx.gasPrice || 0)) / 1e18).toFixed(6);
-    const dt   = new Date(Number(tx.timeStamp) * 1000)
-      .toLocaleString('ko-KR', { hour12: false });
-    const hash = tx.hash ? tx.hash.slice(0, 10) + '...' : '—';
-    return `${dt}  ${type}  gas: ${gas} ETH  <a href="https://abscan.org/tx/${tx.hash}" target="_blank" style="color:var(--amber)">${hash}</a>`;
+  // 로그
+  const recent = [...bakeTxs, ...boostTxs].sort((a,b) => Number(b.timeStamp)-Number(a.timeStamp)).slice(0,20);
+  document.getElementById('gasLog').innerHTML = recent.map(tx => {
+    const t = tx.to?.toLowerCase() === BAKERY_ADDR ? '🍞 bake ' : '🛒 boost';
+    const g = (Number(BigInt(tx.gasUsed||0)*BigInt(tx.gasPrice||0))/1e18).toFixed(6);
+    const d = new Date(Number(tx.timeStamp)*1000).toLocaleString('ko-KR',{hour12:false});
+    const h = tx.hash ? tx.hash.slice(0,10)+'...' : '—';
+    return `${d}  ${t}  gas:${g}ETH  <a href="https://abscan.org/tx/${tx.hash}" target="_blank" style="color:var(--amber)">${h}</a>`;
   }).join('\n') || '관련 트랜잭션 없음';
-
   document.getElementById('logBtn').style.display = 'inline';
 
   cachedGasETH = totalETH;
@@ -706,179 +471,145 @@ async function fetchGasCost(address) {
 }
 
 // ── P&L calc ─────────────────────────────────────────────────
-
-function calcPnL(cookieBal, allTimeCookies, gasETH) {
+function calcPnL(allTimeCookies, gasETH) {
   smv('p-eth', ethPrice > 0 ? '$' + ethPrice.toLocaleString() : '—');
-
   const prizeInput = parseFloat(document.getElementById('prizePool').value);
-  const gas = (gasETH != null) ? gasETH : cachedGasETH;
+  const gas = gasETH != null ? gasETH : cachedGasETH;
 
-  if (isNaN(prizeInput)) {
-    smv('p-pool', '입력 필요', 'm');
-    ['p-share','p-gross','p-pnl'].forEach(id => smv(id, '—'));
-    sv('v-gross-eth', '—'); sv('v-pnl-usd', '—');
-    return;
-  }
-
+  if (isNaN(prizeInput)) { smv('p-pool','입력 필요','m'); return; }
   smv('p-pool', prizeInput.toFixed(3) + ' ETH');
 
   const leaderPot = prizeInput * LB_BUCKET;
   let sharePct = 0, grossETH = 0;
-
   if (allTimeCookies > 0 && totalCookiesSeason > 0) {
     sharePct = (allTimeCookies / totalCookiesSeason) * 100;
     grossETH = leaderPot * (allTimeCookies / totalCookiesSeason);
   }
 
-  smv('p-share', sharePct > 0 ? sharePct.toFixed(4) + '%' : '—', sharePct > 0 ? 'g' : 'm');
-  smv('p-gross', fmtE(grossETH, 4) + ' ETH', 'g');
-  sv('v-gross-eth', fmtE(grossETH, 4) + ' ETH', 'g');
+  smv('p-share', sharePct > 0 ? sharePct.toFixed(4)+'%' : '—', sharePct > 0 ? 'g' : 'm');
+  smv('p-gross', fmtE(grossETH,4)+' ETH', 'g');
+  sv('v-gross-eth', fmtE(grossETH,4)+' ETH', 'g');
 
   const pnlETH = grossETH - gas;
-  const pnlCls = pnlETH >= 0 ? 'g' : 'r';
-  smv('p-pnl', (pnlETH >= 0 ? '+' : '') + fmtE(pnlETH, 4) + ' ETH', pnlCls);
-
-  if (ethPrice > 0) {
-    const pnlUSD = pnlETH * ethPrice;
-    sv('v-pnl-usd',
-      (pnlUSD >= 0 ? '+' : '') + fmtUSD(pnlUSD),
-      pnlCls
-    );
-  }
+  smv('p-pnl', (pnlETH>=0?'+':'')+fmtE(pnlETH,4)+' ETH', pnlETH>=0?'g':'r');
+  if (ethPrice > 0) sv('v-pnl-usd', (pnlETH>=0?'+':'')+fmtUSD(pnlETH*ethPrice), pnlETH>=0?'g':'r');
 
   if (gas > 0 && grossETH > 0) {
-    const pct = Math.min((gas / grossETH) * 100, 100);
-    document.getElementById('gasProgress').style.display = 'block';
-    document.getElementById('gasFill').style.width = pct.toFixed(1) + '%';
-    document.getElementById('gasRatioPct').textContent = pct.toFixed(1) + '% of gross';
+    const pct = Math.min((gas/grossETH)*100,100);
+    document.getElementById('gasProgress').style.display='block';
+    document.getElementById('gasFill').style.width=pct.toFixed(1)+'%';
+    document.getElementById('gasRatioPct').textContent=pct.toFixed(1)+'% of gross';
   }
 }
 
 // ── Main fetch ────────────────────────────────────────────────
-
 async function fetchAll() {
-  const manualId = parseInt(document.getElementById('bId').value) || 0;
-  const rawInput = document.getElementById('playerInput').value.trim();
-  const btnR     = document.getElementById('btnRefresh');
+  const rawInput  = document.getElementById('playerInput').value.trim();
+  const manualId  = parseInt(document.getElementById('bId').value) || 0;
+  const btnR      = document.getElementById('btnRefresh');
 
   btnR.innerHTML = '<span class="spinner"></span> 로딩 중';
   btnR.disabled  = true;
-  hideErr();
+  notice(null);
   setStatus('불러오는 중...', '');
 
   let resolvedAddr = '';
-  let id = manualId;
+  let bakeryId = manualId;
 
   try {
-    // ── Step 1: 닉네임 or 주소 resolve ──────────────────
+    await Promise.all([fetchETH(), fetchPrizePool()]);
+
+    // ── Step 1: 닉네임 or 주소 resolve ──
     if (rawInput) {
-      if (rawInput.startsWith('0x') && rawInput.length === 42) {
-        // 지갑 주소 직접 입력
+      if (/^0x[0-9a-fA-F]{40}$/.test(rawInput)) {
         resolvedAddr = rawInput;
+        console.log('[main] 지갑 주소 입력:', resolvedAddr);
       } else {
-        // 닉네임 → 주소 변환 시도
         setStatus('닉네임 조회 중...', '');
-        resolvedAddr = await resolveUsername(rawInput);
-        if (!resolvedAddr) {
-          showErr('닉네임 "' + rawInput + '"을 찾을 수 없습니다. 지갑 주소(0x...)를 직접 입력해 주세요.');
-          setStatus('오류', 'err');
-          return;
-        }
-        showInfo('닉네임 "' + rawInput + '" → ' + resolvedAddr.slice(0,6) + '...' + resolvedAddr.slice(-4));
-      }
-    }
-
-    // ── Step 2: Bakery ID 결정 ───────────────────────────
-    // 수동 입력이 없고 지갑 주소가 있으면 팀 베이커리 자동 감지
-    if (!id && resolvedAddr) {
-      setStatus('팀 베이커리 감지 중...', '');
-      try {
-        const playerInp = JSON.stringify({ json: { address: resolvedAddr } });
-        const playerData = await pfetch(BAKERY_API + 'leaderboard.getPlayerBakery?input=' + encodeURIComponent(playerInp));
-        const pb = playerData?.result?.data?.json;
-        const detectedId = pb?.clanId || pb?.id || pb?.bakeryId;
-        if (detectedId) {
-          id = detectedId;
-          document.getElementById('bId').value = id;
-          showInfo((rawInput && !rawInput.startsWith('0x') ? '닉네임 "' + rawInput + '" → ' : '') +
-            '팀 베이커리 자동 감지: #' + id + (pb?.name ? ' (' + pb.name + ')' : ''));
+        notice('닉네임 "' + rawInput + '" 조회 중...', 'warn');
+        const addr = await resolveUsername(rawInput);
+        if (addr) {
+          resolvedAddr = addr;
+          notice('닉네임 "' + rawInput + '" → ' + addr.slice(0,6) + '...' + addr.slice(-4) + ' 연결 완료', 'info');
         } else {
-          showErr('소속 팀 베이커리를 찾을 수 없습니다. 아직 팀에 가입하지 않았거나 시즌 미참여 상태일 수 있습니다.');
-          setStatus('오류', 'err');
-          return;
-        }
-      } catch(e) {
-        console.warn('[playerBakery]', e.message);
-        if (!id) {
-          showErr('팀 베이커리 감지 실패: ' + e.message);
+          notice('닉네임 "' + rawInput + '"을 찾을 수 없습니다.\n현재 Abstract 닉네임 API가 공개되지 않아 지갑 주소(0x...)를 직접 입력해 주세요.', 'err');
           setStatus('오류', 'err');
           return;
         }
       }
     }
 
-    if (!id) {
-      showErr('Bakery ID를 입력하거나 닉네임/지갑 주소를 입력해 주세요.');
-      setStatus('오류', 'err');
+    // ── Step 2: Bakery ID 결정 ──
+    if (!bakeryId && resolvedAddr) {
+      setStatus('팀 베이커리 감지 중...', '');
+      const found = await findBakeryId(resolvedAddr);
+      if (found) {
+        bakeryId = found.id;
+        document.getElementById('bId').value = bakeryId;
+        notice('팀 베이커리 자동 감지: #' + bakeryId + (found.name ? ' (' + found.name + ')' : ''), 'info');
+      } else {
+        // 시즌 미시작이거나 팀 미가입 → 가스비만 계산
+        notice('소속 팀 베이커리를 찾을 수 없습니다. 시즌 미시작이거나 아직 팀에 가입하지 않은 상태일 수 있습니다.\n가스비 분석은 계속 진행합니다.', 'warn');
+        if (resolvedAddr) await fetchGasCost(resolvedAddr);
+        setStatus('일부 완료 (팀 미감지)', '');
+        return;
+      }
+    }
+
+    if (!bakeryId) {
+      notice('닉네임/지갑 주소 또는 Bakery ID를 입력해 주세요.', 'err');
+      setStatus('대기 중', '');
       return;
     }
 
-    const inp = JSON.stringify({ json: { bakeryId: id } });
-
+    // ── Step 3: 베이커리 데이터 fetch ──
+    const inp = JSON.stringify({ json: { bakeryId } });
     const [bakeryData, effectsData] = await Promise.all([
       pfetch(BAKERY_API + 'leaderboard.getBakeryById?input=' + encodeURIComponent(inp)),
       pfetch(BAKERY_API + 'leaderboard.getBakeryEffects?input=' + encodeURIComponent(inp)),
-      fetchETH(),
-      fetchPrizePool(),
     ]);
 
     const b = bakeryData?.result?.data?.json;
     const e = effectsData?.result?.data?.json;
-
-    if (!b) {
-      showErr('Bakery를 찾을 수 없습니다 (ID: ' + id + ')');
-      setStatus('오류', 'err');
-      return;
-    }
+    if (!b) { notice('Bakery #' + bakeryId + ' 를 찾을 수 없습니다.', 'err'); setStatus('오류','err'); return; }
 
     const cookieBal   = (b.cookieBalance   ?? 0) / 10000;
     const allTimeCook = (b.allTimeCookies  ?? 0) / 10000;
 
     sv('v-cookies', fmtC(cookieBal) + ' 🍪');
-    sv('v-name',  b.name  || '—');
-    // 팀 베이커리 배지
-    const tb = document.getElementById('teamBadge');
-    if (tb) {
-      const memberCount = b.memberCount || b.members?.length || null;
-      tb.textContent = memberCount != null ? '팀 · ' + memberCount + '명' : '팀 베이커리';
-      tb.style.display = 'inline';
-    }
-    sv('v-rank',  b.rank  ? '#' + b.rank : '—', 'a');
+    sv('v-name', b.name || '—');
+    sv('v-rank', b.rank ? '#' + b.rank : '—', 'a');
     sv('v-score', b.score ? Number(b.score).toLocaleString() : '—');
     sv('v-bakes', (b.totalBakes || 0).toLocaleString());
     sv('v-total', fmtC(allTimeCook));
 
+    // 팀 배지
+    const tb = document.getElementById('teamBadge');
+    const mc = b.memberCount || b.members?.length;
+    if (mc != null) { tb.textContent = '팀 · ' + mc + '명'; tb.style.display = 'inline'; }
+
     if (e) {
       totalCookiesSeason = e.totalCookies || e.leaderboardTotalCookies || 0;
       const mult = e.effectiveMultiplier;
-      sv('v-mult', mult != null ? (mult / 10000).toFixed(2) + 'x' : '—',
-        mult > 10000 ? 'g' : '');
-      setTags('v-boosts',    (e.buffs           || []).map(x => x.name),                    'g');
-      setTags('v-debuffs',   (e.debuffs         || []).map(x => x.name),                    'r');
-      setTags('v-cooldowns', (e.cooldowns       || []).map(x => x.name),                    'a');
-      setTags('v-pending',   (e.pendingRequests || []).map(x => x.boostName || x.name || 'VRF'), 'n');
+      sv('v-mult', mult != null ? (mult/10000).toFixed(2)+'x' : '—', mult > 10000 ? 'g' : '');
+      setTags('v-boosts',    (e.buffs           ||[]).map(x=>x.name), 'g');
+      setTags('v-debuffs',   (e.debuffs         ||[]).map(x=>x.name), 'r');
+      setTags('v-cooldowns', (e.cooldowns       ||[]).map(x=>x.name), 'a');
+      setTags('v-pending',   (e.pendingRequests ||[]).map(x=>x.boostName||x.name||'VRF'), 'n');
     }
 
+    // ── Step 4: 가스비 계산 ──
     let gasETH = null;
     if (resolvedAddr) gasETH = await fetchGasCost(resolvedAddr);
 
-    calcPnL(cookieBal, allTimeCook, gasETH);
+    calcPnL(allTimeCook, gasETH);
     setStatus('업데이트 완료', 'live');
-    document.getElementById('lastUpdated').textContent =
-      '최종 업데이트: ' + new Date().toLocaleTimeString('ko-KR', { hour12: false });
+    document.getElementById('lastUpdated').textContent = '최종 업데이트: ' + new Date().toLocaleTimeString('ko-KR',{hour12:false});
+    if (!notice || document.getElementById('noticeBox').className.includes('warn') || document.getElementById('noticeBox').className.includes('err')) {}
 
-  } catch (err) {
-    showErr('요청 실패: ' + err.message + ' — corsproxy.io가 다운됐거나 네트워크 문제일 수 있습니다.');
+  } catch(err) {
+    console.error('[main]', err);
+    notice('요청 실패: ' + err.message, 'err');
     setStatus('오류', 'err');
   } finally {
     btnR.innerHTML = '↻ Refresh';
@@ -886,8 +617,9 @@ async function fetchAll() {
   }
 }
 
-// ── Auto refresh ──────────────────────────────────────────────
+document.getElementById('prizePool').addEventListener('input', () => calcPnL(0, null));
 
+// ── Auto refresh ─────────────────────────────────────────────
 function toggleAuto() {
   autoOn = !autoOn;
   const btn = document.getElementById('btnAuto');
@@ -902,28 +634,15 @@ function toggleAuto() {
     document.getElementById('cdTxt').textContent = '';
   }
 }
-
 function startCD() {
-  cdSec = 30;
-  clearInterval(cdTimer);
+  cdSec = 30; clearInterval(cdTimer);
   document.getElementById('cdTxt').textContent = cdSec + 's';
   cdTimer = setInterval(() => {
     cdSec--;
     document.getElementById('cdTxt').textContent = cdSec + 's';
-    if (cdSec <= 0) {
-      clearInterval(cdTimer);
-      fetchAll().then(startCD);
-    }
+    if (cdSec <= 0) { clearInterval(cdTimer); fetchAll().then(startCD); }
   }, 1000);
 }
-
-// Prize pool 실시간 P&L 재계산
-document.getElementById('prizePool').addEventListener('input', () => {
-  if (cachedGasETH > 0) calcPnL(0, 0, null);
-});
-
-// 초기 로드
-fetchAll();
 </script>
 </body>
 </html>
