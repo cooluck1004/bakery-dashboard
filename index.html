@@ -106,6 +106,18 @@ input:focus{border-color:var(--amber)}
   .ipt-player{width:100%}
 }
 @media(max-width:420px){.pnl-strip{grid-template-columns:repeat(2,1fr)}}
+  .nick-tag {
+    font-size:11px; padding:2px 10px; border-radius:99px; cursor:pointer;
+    background:var(--bg3); border:1px solid var(--border2); color:var(--text2);
+    display:inline-flex; align-items:center; gap:5px; transition:border-color .15s;
+  }
+  .nick-tag:hover { border-color:var(--amber); color:var(--amber); }
+  .nick-tag .del { color:var(--text3); font-size:10px; margin-left:2px; }
+  .nick-tag .del:hover { color:var(--red); }
+  .nick-tag { font-size:11px; padding:2px 10px; border-radius:99px; cursor:pointer;
+    background:var(--bg3); border:1px solid var(--border2); color:var(--text2);
+    display:inline-flex; align-items:center; gap:4px; }
+  .nick-tag:hover { border-color:var(--amber); color:var(--amber); }
 </style>
 </head>
 <body>
@@ -139,6 +151,12 @@ input:focus{border-color:var(--amber)}
       <button class="btn primary" id="btnRefresh" onclick="fetchAll()">↻ Refresh</button>
       <button class="btn" id="btnAuto" onclick="toggleAuto()">▶ Auto 30s</button>
       <span class="cd-txt" id="cdTxt"></span>
+    </div>
+    <div id="nickBookBar" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+      <span style="font-size:10px;color:var(--text3)">💾 저장된 닉네임:</span>
+      <span id="nickTags" style="display:flex;flex-wrap:wrap;gap:5px"></span>
+      <button class="btn" style="height:26px;font-size:11px;padding:0 10px" onclick="saveNick()">+ 현재 주소 닉네임으로 저장</button>
+      <span style="font-size:10px;color:var(--text3)">← 주소 입력 후 저장하면 다음부터 닉네임으로 검색 가능</span>
     </div>
   </div>
 
@@ -196,7 +214,7 @@ input:focus{border-color:var(--amber)}
   <div class="ts" id="lastUpdated"></div>
 </main>
 
-<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.0</div>
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.3</div>
 
 <script>
 // ── Constants ────────────────────────────────────────────────
@@ -277,47 +295,128 @@ function toggleLog() {
   document.getElementById('logBtn').textContent = logVisible ? '트랜잭션 로그 닫기 ▴' : '트랜잭션 로그 보기 ▾';
 }
 
-// ── Username → Address ───────────────────────────────────────
+// ── Nickname book (localStorage) ────────────────────────────
+const NICK_KEY = 'rugpull_nickbook_v1';
+
+function loadNickBook() {
+  try { return JSON.parse(localStorage.getItem(NICK_KEY) || '{}'); } catch { return {}; }
+}
+function saveNickBook(book) { localStorage.setItem(NICK_KEY, JSON.stringify(book)); }
+
+function renderNickBook() {
+  const book = loadNickBook();
+  const keys = Object.keys(book);
+  const bar  = document.getElementById('nickBookBar');
+  const tags = document.getElementById('nickTags');
+  if (!bar || !tags) return;
+  bar.style.display = 'flex';
+  tags.innerHTML = keys.map(nick => {
+    const addr = book[nick];
+    const short = addr.slice(0,6)+'...'+addr.slice(-4);
+    return `<span class="nick-tag" onclick="loadNick('${nick}')">` +
+      `${nick} <span style="color:var(--text3);font-size:10px">${short}</span>` +
+      `<span class="del" onclick="event.stopPropagation();deleteNick('${nick}')" title="삭제"> ✕</span></span>`;
+  }).join('');
+}
+
+function saveNick() {
+  const input = document.getElementById('playerInput').value.trim();
+  if (!input) { notice('먼저 지갑 주소를 입력해 주세요.', 'warn'); return; }
+  if (!/^0x[0-9a-fA-F]{40}$/.test(input)) {
+    notice('지갑 주소(0x...) 형식으로 입력한 뒤 저장해 주세요.', 'warn'); return;
+  }
+  const nick = prompt('이 주소의 닉네임을 입력해 주세요 (예: cooluck):', '');
+  if (!nick || !nick.trim()) return;
+  const book = loadNickBook();
+  book[nick.trim()] = input;
+  saveNickBook(book);
+  renderNickBook();
+  notice('"' + nick.trim() + '" 닉네임 저장 완료! 이제 닉네임만 입력해도 자동으로 이 주소가 쓰입니다.', 'info');
+}
+
+function loadNick(nick) {
+  const book = loadNickBook();
+  if (book[nick]) {
+    document.getElementById('playerInput').value = book[nick];
+    notice('"' + nick + '" → ' + book[nick].slice(0,6)+'...'+book[nick].slice(-4), 'info');
+  }
+}
+
+function deleteNick(nick) {
+  if (!confirm('"' + nick + '" 닉네임을 삭제할까요?')) return;
+  const book = loadNickBook();
+  delete book[nick];
+  saveNickBook(book);
+  renderNickBook();
+}
+
+// ── Username → Address resolver ─────────────────────────────
 async function resolveUsername(username) {
   const name = username.trim();
-  console.log('[resolve] 닉네임 조회 시도:', name);
 
-  // 1. rugpullbakery search endpoints
-  const rbEndpoints = [
-    'leaderboard.searchPlayers',
-    'leaderboard.getPlayerByUsername',
-    'leaderboard.searchBakeries',
-    'leaderboard.getTopBakeries',
-  ];
-  for (const ep of rbEndpoints) {
-    try {
-      const inp = JSON.stringify({ json: { query: name, username: name, search: name, limit: 10 } });
-      const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(inp));
-      const result = data?.result?.data?.json;
-      const list = Array.isArray(result) ? result : result?.items || result?.players || result?.bakeries || [];
-      const match = list.find(r =>
-        (r.username || r.name || r.playerName || r.ownerName || '').toLowerCase() === name.toLowerCase()
-      );
-      if (match) {
-        const addr = match.address || match.walletAddress || match.ownerAddress;
-        if (addr) { console.log('[resolve] ' + ep + ' 성공:', addr); return addr; }
-      }
-    } catch(e) { console.warn('[resolve] ' + ep + ':', e.message); }
-  }
+  // 1순위: 로컬 닉네임 북
+  const book = loadNickBook();
+  const hit = Object.entries(book).find(([k]) => k.toLowerCase() === name.toLowerCase());
+  if (hit) { console.log('[resolve] 닉네임 북 히트:', hit[1]); return hit[1]; }
 
-  // 2. Abstract public profile API
-  const absEndpoints = [
-    'https://api.abs.xyz/v1/accounts/resolve?username=' + encodeURIComponent(name),
-    'https://api.abs.xyz/v1/users/' + encodeURIComponent(name),
-    'https://api.abs.xyz/v1/profiles/' + encodeURIComponent(name),
-    'https://api.abs.xyz/accounts/' + encodeURIComponent(name),
+  // 2순위: backend.portal.abs.xyz/api/user (포탈 검색 백엔드)
+  // 파라미터 형식이 확인되지 않아 가능한 형식 순서대로 시도
+  const backendBase = 'https://backend.portal.abs.xyz/api/user';
+  const backendParams = [
+    `?username=${encodeURIComponent(name)}`,
+    `?search=${encodeURIComponent(name)}`,
+    `?q=${encodeURIComponent(name)}`,
+    `?query=${encodeURIComponent(name)}`,
+    `?name=${encodeURIComponent(name)}`,
+    `/${encodeURIComponent(name)}`,
+    `?handle=${encodeURIComponent(name)}`,
   ];
-  for (const url of absEndpoints) {
+
+  for (const param of backendParams) {
+    const url = backendBase + param;
     try {
       const data = await pfetch(url);
-      const addr = data?.address || data?.walletAddress || data?.agwAddress || data?.data?.address;
-      if (addr && addr.startsWith('0x')) { console.log('[resolve] abs.xyz 성공:', addr); return addr; }
-    } catch(e) { console.warn('[resolve] abs.xyz:', e.message); }
+      console.log('[resolve] backend 응답:', param, JSON.stringify(data)?.slice(0, 150));
+
+      // 응답에서 주소 추출 (다양한 구조 처리)
+      const extract = (obj) => {
+        if (!obj) return null;
+        const addr = obj.address || obj.walletAddress || obj.agwAddress || obj.wallet;
+        if (addr?.startsWith('0x')) return addr;
+        // 배열이면 닉네임 매칭
+        const list = Array.isArray(obj) ? obj : (obj.users || obj.results || obj.data || obj.items || []);
+        if (Array.isArray(list)) {
+          const match = list.find(u =>
+            (u.username || u.name || u.displayName || u.handle || '').toLowerCase() === name.toLowerCase()
+          );
+          if (match) return match.address || match.walletAddress || match.agwAddress;
+        }
+        return null;
+      };
+
+      const addr = extract(data) || extract(data?.data) || extract(data?.user) || extract(data?.result);
+      if (addr) { console.log('[resolve] ✅ backend.portal 히트:', param, addr); return addr; }
+    } catch(e) { console.warn('[resolve] backend', param, e.message); }
+  }
+
+  // 3순위: portal.abs.xyz Next.js API 라우트
+  const nextEndpoints = [
+    `https://portal.abs.xyz/api/search?q=${encodeURIComponent(name)}&type=users`,
+    `https://portal.abs.xyz/api/users?search=${encodeURIComponent(name)}`,
+    `https://api.abs.xyz/v1/search/users?query=${encodeURIComponent(name)}`,
+  ];
+  for (const url of nextEndpoints) {
+    try {
+      const data = await pfetch(url);
+      const list = data?.users || data?.results || data?.items || (Array.isArray(data) ? data : []);
+      const match = list.find?.(u =>
+        (u.username || u.name || u.displayName || '').toLowerCase() === name.toLowerCase()
+      );
+      if (match) {
+        const addr = match.address || match.walletAddress;
+        if (addr?.startsWith('0x')) { console.log('[resolve] ✅ next API 히트:', addr); return addr; }
+      }
+    } catch(e) { /* skip */ }
   }
 
   return null;
@@ -532,7 +631,10 @@ async function fetchAll() {
           resolvedAddr = addr;
           notice('닉네임 "' + rawInput + '" → ' + addr.slice(0,6) + '...' + addr.slice(-4) + ' 연결 완료', 'info');
         } else {
-          notice('닉네임 "' + rawInput + '"을 찾을 수 없습니다.\n현재 Abstract 닉네임 API가 공개되지 않아 지갑 주소(0x...)를 직접 입력해 주세요.', 'err');
+          notice('닉네임 "' + rawInput + '"을 찾을 수 없습니다. ' +
+            'Abstract에 닉네임→주소 공개 API가 없어 자동 조회가 불가합니다. ' +
+            '지갑 주소(0x...)를 먼저 입력한 뒤 "+ 현재 주소 닉네임으로 저장" 버튼으로 등록하면, ' +
+            '다음부터 닉네임만으로 사용할 수 있습니다.', 'err');
           setStatus('오류', 'err');
           return;
         }
@@ -618,6 +720,9 @@ async function fetchAll() {
 }
 
 document.getElementById('prizePool').addEventListener('input', () => calcPnL(0, null));
+
+// 닉네임 북 초기 렌더링
+renderNickBook();
 
 // ── Auto refresh ─────────────────────────────────────────────
 function toggleAuto() {
