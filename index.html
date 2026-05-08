@@ -183,7 +183,7 @@ input:focus{border-color:var(--amber)}
   <div class="ts" id="lastUpdated"></div>
 </main>
 
-<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.8</div>
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.9</div>
 
 <script>
 const BAKERY_API  = 'https://www.rugpullbakery.com/api/trpc/';
@@ -418,41 +418,46 @@ async function resolveUsername(username) {
   return null;
 }
 
-// ── Find team bakery from address ─────────────────────────────
+// ── Find team bakery from address (병렬화) ────────────────────
+async function pfetchSafe(url) {
+  try { return await pfetch(url); } catch { return null; }
+}
+
 async function findBakeryId(address) {
-  console.log('[bakery] 팀 베이커리 조회:', address);
+  console.log('[bakery] 팀 베이커리 병렬 조회:', address);
   const addrLower = address.toLowerCase();
 
-  // 작동 확인된 방식 최우선: getPlayerBakery + { address } 원본/소문자 둘 다 시도
-  const priorityAttempts = [
-    { ep: 'leaderboard.getPlayerBakery',     json: { address: address } },
+  // 모든 후보를 동시에 쏘고 첫 성공 응답 채택
+  const attempts = [
+    { ep: 'leaderboard.getPlayerBakery',     json: { address } },
     { ep: 'leaderboard.getPlayerBakery',     json: { address: addrLower } },
-    { ep: 'leaderboard.getMyBakeryInit',     json: { address: address } },
+    { ep: 'leaderboard.getMyBakeryInit',     json: { address } },
     { ep: 'leaderboard.getMyBakeryInit',     json: { address: addrLower } },
-    { ep: 'leaderboard.getBakeryByOwner',    json: { address: address } },
+    { ep: 'leaderboard.getBakeryByOwner',    json: { address } },
     { ep: 'leaderboard.getBakeryByOwner',    json: { ownerAddress: address } },
     { ep: 'leaderboard.getPlayerBakery',     json: { playerAddress: address } },
     { ep: 'leaderboard.getPlayerBakery',     json: { walletAddress: address } },
-    { ep: 'leaderboard.getPlayerBakeryInfo', json: { address: address } },
   ];
 
-  for (const { ep, json } of priorityAttempts) {
-    try {
-      const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json })));
-      const pb = data?.result?.data?.json;
-      if (!pb) continue;
-      console.log('[bakery] ✅', ep, JSON.stringify(json), '->', JSON.stringify(pb).slice(0, 120));
+  // Promise.any — 첫 번째로 유효한 결과를 반환
+  try {
+    const result = await Promise.any(
+      attempts.map(({ ep, json }) =>
+        pfetchSafe(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json })))
+          .then(data => {
+            const pb = data?.result?.data?.json;
+            const id = pb?.clanId ?? pb?.id ?? pb?.bakeryId
+                    ?? pb?.clan?.id ?? pb?.currentClan?.id ?? pb?.bakery?.id;
+            if (!id) throw new Error('no id');
+            console.log('[bakery] ✅', ep, '->', id);
+            return { id: Number(id), name: pb?.name ?? pb?.clan?.name ?? pb?.bakery?.name ?? '' };
+          })
+      )
+    );
+    return result;
+  } catch { /* 모두 실패 시 fallback */ }
 
-      const id = pb?.clanId ?? pb?.id ?? pb?.bakeryId
-              ?? pb?.clan?.id ?? pb?.currentClan?.id ?? pb?.bakery?.id;
-      if (id) return {
-        id: Number(id),
-        name: pb?.name ?? pb?.clan?.name ?? pb?.bakery?.name ?? pb?.currentClan?.name ?? ''
-      };
-    } catch(e) { /* skip */ }
-  }
-
-  // 최후 수단: getTopBakeries에서 owner/member 주소로 매칭
+  // Fallback: getTopBakeries에서 매칭
   try {
     const data = await pfetch(BAKERY_API + 'leaderboard.getTopBakeries?input='
       + encodeURIComponent(JSON.stringify({ json: { limit: 200 } })));
@@ -462,20 +467,40 @@ async function findBakeryId(address) {
       b.owner?.toLowerCase() === addrLower ||
       b.members?.some?.(m => m.address?.toLowerCase() === addrLower)
     );
-    if (match) {
-      console.log('[bakery] ✅ topBakeries 매칭:', match.id ?? match.clanId);
-      return { id: Number(match.id ?? match.clanId), name: match.name ?? '' };
-    }
+    if (match) return { id: Number(match.id ?? match.clanId), name: match.name ?? '' };
   } catch(e) { console.warn('[bakery] topBakeries:', e.message); }
 
   return null;
 }
 
-// ── Gas cost (paginated) ──────────────────────────────────────
+// ── Gas cost (paginated + 5분 캐시) ──────────────────────────
+const GAS_CACHE_TTL = 5 * 60 * 1000; // 5분
+
 async function fetchGasCost(address) {
   if (!address) return null;
   const noteEl  = document.getElementById('gasNote');
   const badgeEl = document.getElementById('txCountBadge');
+
+  // 캐시 확인 (같은 주소 + 5분 이내 + 시즌 필터 동일)
+  const cacheKey = 'gasCache_' + address.toLowerCase() + '_' + (seasonStartTs || 0);
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+    if (cached && Date.now() - cached.ts < GAS_CACHE_TTL) {
+      console.log('[gas] 캐시 히트 — 재조회 스킵');
+      // 캐시 데이터로 UI 업데이트
+      document.getElementById('g-total').textContent  = cached.totalEth + ' ETH';
+      document.getElementById('g-bake').textContent   = cached.bakeEth  + ' ETH';
+      document.getElementById('g-boost').textContent  = cached.boostEth + ' ETH';
+      document.getElementById('g-usd').textContent    = ethPrice > 0 ? fmtUSD(parseFloat(cached.totalEth) * ethPrice) : '—';
+      badgeEl.textContent = cached.badge + ' (캐시)';
+      noteEl.textContent  = cached.note  + ' · 캐시 사용 중 (5분 후 자동 갱신)';
+      document.getElementById('gasLog').innerHTML = cached.log || '';
+      if (cached.log) document.getElementById('logBtn').style.display = 'inline';
+      cachedGasETH = parseFloat(cached.totalEth);
+      return cachedGasETH;
+    }
+  } catch { /* 캐시 파싱 실패 무시 */ }
+
   noteEl.textContent = '페이지 1 조회 중...';
   let allTxs = [], page = 1, hasMore = true;
   while (hasMore) {
@@ -523,6 +548,20 @@ async function fetchGasCost(address) {
   }).join('\n') || '없음';
   document.getElementById('logBtn').style.display = 'inline';
   cachedGasETH = totalETH;
+
+  // 캐시 저장
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify({
+      ts: Date.now(),
+      totalEth: fmtE(totalETH, 5),
+      bakeEth:  fmtE(Number(bakeWei) / 1e18, 5),
+      boostEth: fmtE(Number(boostWei) / 1e18, 5),
+      badge: badgeEl.textContent,
+      note:  noteEl.textContent,
+      log:   document.getElementById('gasLog').innerHTML,
+    }));
+  } catch { /* sessionStorage 실패 무시 */ }
+
   return totalETH;
 }
 
