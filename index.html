@@ -91,7 +91,7 @@
     border-color: var(--amber);
   }
   .ipt-id   { width: 80px; }
-  .ipt-addr { width: 380px; max-width: 100%; }
+  .ipt-addr { width: 300px; max-width: 100%; }
   .ipt-num  { width: 120px; }
   .btn {
     height: 34px; padding: 0 14px;
@@ -274,16 +274,16 @@
   <div class="config-bar">
     <div class="config-title">⚙ 설정</div>
     <div class="config-inputs">
-      <div class="field">
-        <label>Bakery ID <span style="color:var(--text3);font-size:9px">(지갑 입력시 자동)</span></label>
-        <input class="ipt-id" id="bId" type="number" placeholder="자동" min="1">
-      </div>
       <div class="field" style="flex:1;min-width:200px">
-        <label>지갑 주소 (AGW) — 팀 베이커리 자동 감지 + 가스비 계산</label>
-        <input class="ipt-addr" id="walletAddr" type="text" placeholder="0x...">
+        <label>닉네임 또는 지갑 주소 (0x...)</label>
+        <input class="ipt-addr" id="playerInput" type="text" placeholder="cooluck  또는  0xb98F...">
       </div>
       <div class="field">
-        <label>Prize pool <span id="prizeAutoLabel" style="color:#f59e0b;font-size:9px;margin-left:4px"></span></label>
+        <label>Bakery ID <span style="color:var(--text3);font-size:9px">(선택 · 직접 입력 시 우선)</span></label>
+        <input class="ipt-id" id="bId" type="number" placeholder="" min="1">
+      </div>
+      <div class="field">
+        <label>Prize pool (ETH) <span id="prizeAutoLabel" style="color:#f59e0b;font-size:9px;margin-left:4px"></span></label>
         <input class="ipt-num" id="prizePool" type="number" placeholder="자동 조회 중..." step="0.001">
       </div>
       <button class="btn primary" id="btnRefresh" onclick="fetchAll()">
@@ -479,6 +479,52 @@ function toggleLog() {
   document.getElementById('logBtn').textContent = logVisible
     ? '트랜잭션 로그 닫기 ▴'
     : '트랜잭션 로그 보기 ▾';
+}
+
+// ── Username → Address resolver ─────────────────────────────
+
+async function resolveUsername(username) {
+  const name = username.trim().toLowerCase();
+
+  // 1순위: rugpullbakery player search
+  const candidates = [
+    'leaderboard.searchPlayers',
+    'leaderboard.getPlayerByUsername',
+    'leaderboard.searchBakeries',
+  ];
+  for (const ep of candidates) {
+    try {
+      const inp = JSON.stringify({ json: { query: username, username, name } });
+      const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(inp));
+      const result = data?.result?.data?.json;
+      if (Array.isArray(result)) {
+        const match = result.find(r =>
+          (r.username || r.name || r.playerName || '').toLowerCase() === name
+        );
+        if (match?.address || match?.walletAddress || match?.ownerAddress) {
+          return match.address || match.walletAddress || match.ownerAddress;
+        }
+      } else if (result?.address) {
+        return result.address;
+      }
+    } catch(e) { /* 다음 시도 */ }
+  }
+
+  // 2순위: Abstract public profile API
+  const absEndpoints = [
+    'https://api.abs.xyz/v1/accounts/resolve?username=' + encodeURIComponent(username),
+    'https://api.abs.xyz/v1/users/' + encodeURIComponent(username),
+    'https://api.abs.xyz/v1/profiles/' + encodeURIComponent(username),
+  ];
+  for (const url of absEndpoints) {
+    try {
+      const data = await pfetch(url);
+      const addr = data?.address || data?.walletAddress || data?.agwAddress || data?.data?.address;
+      if (addr && addr.startsWith('0x')) return addr;
+    } catch(e) { /* 다음 시도 */ }
+  }
+
+  return null; // 모두 실패
 }
 
 // ── ETH price ────────────────────────────────────────────────
@@ -711,37 +757,71 @@ function calcPnL(cookieBal, allTimeCookies, gasETH) {
 // ── Main fetch ────────────────────────────────────────────────
 
 async function fetchAll() {
-  let id     = parseInt(document.getElementById('bId').value) || 0;
-  const addr = document.getElementById('walletAddr').value.trim();
-  const btnR = document.getElementById('btnRefresh');
+  const manualId = parseInt(document.getElementById('bId').value) || 0;
+  const rawInput = document.getElementById('playerInput').value.trim();
+  const btnR     = document.getElementById('btnRefresh');
 
   btnR.innerHTML = '<span class="spinner"></span> 로딩 중';
   btnR.disabled  = true;
   hideErr();
   setStatus('불러오는 중...', '');
 
+  let resolvedAddr = '';
+  let id = manualId;
+
   try {
-    // 지갑 주소가 있으면 소속 팀 베이커리 자동 감지
-    if (addr && addr.startsWith('0x')) {
-      try {
-        const playerInp = JSON.stringify({ json: { address: addr } });
-        const playerData = await pfetch(BAKERY_API + 'leaderboard.getPlayerBakery?input=' + encodeURIComponent(playerInp));
-        const playerBakery = playerData?.result?.data?.json;
-        if (playerBakery?.clanId) {
-          id = playerBakery.clanId;
-          document.getElementById('bId').value = id;
-          showInfo('팀 베이커리 자동 감지: #' + id + (playerBakery.name ? ' (' + playerBakery.name + ')' : ''));
-        } else if (playerBakery?.id) {
-          id = playerBakery.id;
-          document.getElementById('bId').value = id;
-          showInfo('팀 베이커리 자동 감지: #' + id);
+    // ── Step 1: 닉네임 or 주소 resolve ──────────────────
+    if (rawInput) {
+      if (rawInput.startsWith('0x') && rawInput.length === 42) {
+        // 지갑 주소 직접 입력
+        resolvedAddr = rawInput;
+      } else {
+        // 닉네임 → 주소 변환 시도
+        setStatus('닉네임 조회 중...', '');
+        resolvedAddr = await resolveUsername(rawInput);
+        if (!resolvedAddr) {
+          showErr('닉네임 "' + rawInput + '"을 찾을 수 없습니다. 지갑 주소(0x...)를 직접 입력해 주세요.');
+          setStatus('오류', 'err');
+          return;
         }
-      } catch(e) {
-        console.warn('[playerBakery] 자동 감지 실패:', e.message);
+        showInfo('닉네임 "' + rawInput + '" → ' + resolvedAddr.slice(0,6) + '...' + resolvedAddr.slice(-4));
       }
     }
 
-    if (!id) { showErr('Bakery ID를 입력하거나 지갑 주소를 입력해 주세요.'); setStatus('오류', 'err'); return; }
+    // ── Step 2: Bakery ID 결정 ───────────────────────────
+    // 수동 입력이 없고 지갑 주소가 있으면 팀 베이커리 자동 감지
+    if (!id && resolvedAddr) {
+      setStatus('팀 베이커리 감지 중...', '');
+      try {
+        const playerInp = JSON.stringify({ json: { address: resolvedAddr } });
+        const playerData = await pfetch(BAKERY_API + 'leaderboard.getPlayerBakery?input=' + encodeURIComponent(playerInp));
+        const pb = playerData?.result?.data?.json;
+        const detectedId = pb?.clanId || pb?.id || pb?.bakeryId;
+        if (detectedId) {
+          id = detectedId;
+          document.getElementById('bId').value = id;
+          showInfo((rawInput && !rawInput.startsWith('0x') ? '닉네임 "' + rawInput + '" → ' : '') +
+            '팀 베이커리 자동 감지: #' + id + (pb?.name ? ' (' + pb.name + ')' : ''));
+        } else {
+          showErr('소속 팀 베이커리를 찾을 수 없습니다. 아직 팀에 가입하지 않았거나 시즌 미참여 상태일 수 있습니다.');
+          setStatus('오류', 'err');
+          return;
+        }
+      } catch(e) {
+        console.warn('[playerBakery]', e.message);
+        if (!id) {
+          showErr('팀 베이커리 감지 실패: ' + e.message);
+          setStatus('오류', 'err');
+          return;
+        }
+      }
+    }
+
+    if (!id) {
+      showErr('Bakery ID를 입력하거나 닉네임/지갑 주소를 입력해 주세요.');
+      setStatus('오류', 'err');
+      return;
+    }
 
     const inp = JSON.stringify({ json: { bakeryId: id } });
 
@@ -790,7 +870,7 @@ async function fetchAll() {
     }
 
     let gasETH = null;
-    if (addr) gasETH = await fetchGasCost(addr);
+    if (resolvedAddr) gasETH = await fetchGasCost(resolvedAddr);
 
     calcPnL(cookieBal, allTimeCook, gasETH);
     setStatus('업데이트 완료', 'live');
