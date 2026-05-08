@@ -38,7 +38,8 @@ input:focus{border-color:var(--amber)}
 .ipt-player{width:280px;max-width:100%}
 .ipt-id{width:100px}
 .ipt-num{width:140px}
-.ipt-date{width:190px}
+.chk-field{height:34px;display:flex;align-items:center;gap:6px;color:var(--text2);font-size:11px;white-space:nowrap}
+.chk-field input{accent-color:var(--amber)}
 .btn{height:34px;padding:0 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
 .btn:hover{background:#252525;border-color:#444}
 .btn:disabled{opacity:.4;cursor:default}
@@ -119,22 +120,27 @@ input:focus{border-color:var(--amber)}
         <label>Prize pool (USD) <span id="prizeAutoLabel" style="color:var(--amber);font-size:9px;margin-left:3px"></span></label>
         <input class="ipt-num" id="prizePoolUsd" type="number" placeholder="자동 조회 중..." step="1">
       </div>
-      <div class="field">
-        <label>Season start <span id="seasonAutoLabel" style="color:var(--amber);font-size:9px;margin-left:3px">선택</span></label>
-        <input class="ipt-date" id="seasonStartInput" type="datetime-local" title="입력하면 이 시점 이후의 bake/boost 가스비만 집계합니다.">
-      </div>
+
+      <label class="chk-field" title="켜두면 일반 Refresh에서는 가스비를 캐시로 재사용하고, Gas 버튼을 눌렀을 때만 새로 조회합니다.">
+        <input id="fastMode" type="checkbox" checked> 빠른 조회
+      </label>
+      <button class="btn" id="btnGas" onclick="refreshGasNow()">🔥 Gas만 갱신</button>
       <button class="btn primary" id="btnRefresh" onclick="fetchAll()">↻ Refresh</button>
       <button class="btn" id="btnAuto" onclick="toggleAuto()">▶ Auto 30s</button>
       <span class="cd-txt" id="cdTxt"></span>
     </div>
   </div>
 
+  <div style="background:#1a1000;border:1px solid #854d0e;border-radius:8px;padding:10px 16px;margin-bottom:10px;font-size:11px;color:#f59e0b;line-height:1.8;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px">
+    <span>🏆 <b>Season 5</b> · 2025-05-09 00:00 KST ~ 2025-05-16 00:00 KST (7일) · 상위 10개 베이커리 · 100% score 점유율 분배 · score scaler 매일 +5%</span>
+    <span id="s5countdown" style="font-family:var(--mono);font-size:12px;background:#252500;padding:3px 10px;border-radius:6px;border:1px solid #854d0e"></span>
+  </div>
   <div id="noticeBox" class="notice"></div>
 
   <div class="pnl-strip">
     <div class="metric"><div class="mv" id="p-eth">—</div><div class="ml">ETH price</div></div>
     <div class="metric"><div class="mv" id="p-pool">—</div><div class="ml">Prize pool (ETH)</div></div>
-    <div class="metric"><div class="mv" id="p-share">—</div><div class="ml">My share</div></div>
+    <div class="metric"><div class="mv" id="p-share">—</div><div class="ml">Score share</div></div>
     <div class="metric"><div class="mv g" id="p-gross">—</div><div class="ml">Est. gross</div></div>
     <div class="metric"><div class="mv" id="p-pnl">—</div><div class="ml">P&L (ETH)</div></div>
   </div>
@@ -152,7 +158,7 @@ input:focus{border-color:var(--amber)}
       <div class="progress-track"><div class="progress-fill" id="gasFill" style="width:0%"></div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-      <span class="note" id="gasNote">지갑 주소를 입력하면 abscan API로 전체 기간 자동 집계합니다.</span>
+      <span class="note" id="gasNote">시즌5 기준 (2025-05-09 00:00 KST 이후) 가스비 자동 집계 · 빠른 조회 ON: 일반 Refresh는 캐시 우선 사용 · Gas만 갱신 버튼으로 강제 재조회</span>
       <button class="gas-log-btn" onclick="toggleLog()" id="logBtn" style="display:none">트랜잭션 로그 보기 ▾</button>
     </div>
     <div class="gas-log" id="gasLog"></div>
@@ -180,10 +186,63 @@ input:focus{border-color:var(--amber)}
     </div>
   </div>
 
+  <div class="grid2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-h">📊 Score 계산기 <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text3)">(score = cookies × (1 + 0.05 × day))</span></div>
+      <div class="row">
+        <span class="rl">시즌 진행일</span>
+        <span class="rv a" id="sc-day">—</span>
+      </div>
+      <div class="row">
+        <span class="rl">현재 Score scaler</span>
+        <span class="rv g" id="sc-scaler">—</span>
+      </div>
+      <div class="row">
+        <span class="rl">내 예상 Score</span>
+        <span class="rv" id="sc-myscore">—</span>
+      </div>
+      <div class="row">
+        <span class="rl">시즌 종료까지</span>
+        <span class="rv a" id="sc-remain">—</span>
+      </div>
+      <div class="row" style="padding-top:8px">
+        <span class="rl" style="font-size:10px;color:var(--text3)">* P&L은 쿠키 점유율 기반 근사치. 실제 수익은 최종 score 점유율에 따라 달라집니다.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">🏪 Season 5 규칙 요약</div>
+      <div class="row"><span class="rl">멤버 캡</span><span class="rv">50명</span></div>
+      <div class="row"><span class="rl">Bake 간격</span><span class="rv">5블록/baker</span></div>
+      <div class="row"><span class="rl">수익 자격</span><span class="rv a">상위 10개 베이커리</span></div>
+      <div class="row"><span class="rl">분배 방식</span><span class="rv">최종 Score 점유율</span></div>
+      <div class="row"><span class="rl">Score 공식</span><span class="rv" style="font-size:10px">cookies × (1 + 0.05 × day)</span></div>
+      <div class="row"><span class="rl">Bakery 업그레이드</span><span class="rv g">4종 (영구 효과)</span></div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:12px">
+    <div class="card">
+      <div class="card-h">&#128202; Score 계산기</div>
+      <div class="row"><span class="rl">시즌 진행일</span><span class="rv a" id="sc-day">--</span></div>
+      <div class="row"><span class="rl">현재 Score scaler</span><span class="rv g" id="sc-scaler">--</span></div>
+      <div class="row"><span class="rl">내 예상 Score</span><span class="rv a" id="sc-myscore">--</span></div>
+      <div class="row"><span class="rl">종료까지</span><span class="rv a" id="sc-remain">--</span></div>
+      <div class="row"><span class="rl" style="font-size:10px;color:var(--text3)">* P&amp;L은 쿠키 점유율 기반 근사치. 실제는 최종 score 점유율 기준입니다.</span></div>
+    </div>
+    <div class="card">
+      <div class="card-h">&#127959; Season 5 규칙</div>
+      <div class="row"><span class="rl">멤버 캡</span><span class="rv">50명</span></div>
+      <div class="row"><span class="rl">Bake 간격</span><span class="rv">5블록/baker</span></div>
+      <div class="row"><span class="rl">수익 자격</span><span class="rv a">Top 10 bakery</span></div>
+      <div class="row"><span class="rl">분배 방식</span><span class="rv">최종 Score 점유율</span></div>
+      <div class="row"><span class="rl">Score 공식</span><span class="rv" style="font-size:10px">cookies x (1 + 0.05 x day)</span></div>
+      <div class="row"><span class="rl">업그레이드</span><span class="rv g">4종 (시즌 내 영구)</span></div>
+    </div>
+  </div>
   <div class="ts" id="lastUpdated"></div>
 </main>
 
-<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v1.9</div>
+<div style="position:fixed;bottom:12px;left:16px;font-size:10px;font-family:var(--mono);color:var(--text3);user-select:none">v2.3</div>
 
 <script>
 const BAKERY_API  = 'https://www.rugpullbakery.com/api/trpc/';
@@ -192,8 +251,11 @@ const CGECKO      = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&
 const PORTAL_SEARCH = 'https://backend.portal.abs.xyz/api/search/global?query=';
 const BAKERY_ADDR = '0xfeb79a841d69c08afcdc7b2beec8a6fbbe46c455';
 const BOOST_ADDR  = '0x4f97015601863c256892e0a5e2710b48e149948c';
-const LB_BUCKET   = 0.30;
+const LB_BUCKET   = 1.0; // 시즌5: top10 bakery 100% placement pool
 const PAGE_SIZE   = 10000;
+const GAS_CACHE_TTL = 30 * 60 * 1000; // 빠른 조회: 30분 동안 가스비 캐시 재사용
+const ETH_CACHE_TTL = 60 * 1000;      // ETH 가격은 1분 캐시
+const PRIZE_CACHE_TTL = 5 * 60 * 1000; // 공개 보상풀은 5분 캐시
 
 const PROXIES = [
   url => 'https://corsproxy.io/?url='         + encodeURIComponent(url),
@@ -201,8 +263,10 @@ const PROXIES = [
   url => 'https://cors.eu.org/'               + url,
 ];
 let proxyIdx = 0;
-let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0, seasonStartTs = 0, lastAllTimeCookies = 0;
+let ethPrice = 0, totalCookiesSeason = 0, cachedGasETH = 0, seasonStartTs = 1746716400, lastAllTimeCookies = 0; // 시즌5 고정 시작
+let lastResolvedAddr = '', lastBakeryId = 0, forceGasOnce = false, publicDataReady = false, publicDataPromise = null;
 let autoOn = false, cdSec = 0, cdTimer = null, logVisible = false;
+const usernameCache = new Map();
 
 // ── Proxy fetch ───────────────────────────────────────────────
 async function pfetch(url) {
@@ -210,8 +274,11 @@ async function pfetch(url) {
   for (let i = 0; i < PROXIES.length; i++) {
     const idx = (proxyIdx + i) % PROXIES.length;
     try {
-      const r = await fetch(PROXIES[idx](url), { cache: 'no-store' });
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 9000);
+      const r = await fetch(PROXIES[idx](url), { cache: 'no-store', signal: ctrl.signal });
       const txt = await r.text();
+      clearTimeout(timer);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       try {
         const data = JSON.parse(txt);
@@ -227,6 +294,29 @@ async function pfetch(url) {
     }
   }
   throw new Error('모든 프록시 실패' + (lastErr ? ' · ' + lastErr : ''));
+}
+
+
+async function pfetchText(url) {
+  let lastErr = '';
+  for (let i = 0; i < PROXIES.length; i++) {
+    const idx = (proxyIdx + i) % PROXIES.length;
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 9000);
+      const r = await fetch(PROXIES[idx](url), { cache: 'no-store', signal: ctrl.signal });
+      const txt = await r.text();
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      proxyIdx = idx;
+      document.getElementById('proxyLabel').textContent = ['corsproxy.io','allorigins','cors.eu.org'][idx];
+      return txt;
+    } catch(e) {
+      lastErr = e.message;
+      console.warn('[proxy text' + idx + ']', e.message);
+    }
+  }
+  throw new Error('모든 텍스트 프록시 실패' + (lastErr ? ' · ' + lastErr : ''));
 }
 
 // ── UI helpers ────────────────────────────────────────────────
@@ -269,31 +359,10 @@ function toggleLog() {
 
 // ── Season / scale helpers ─────────────────────────────────────
 function parseSeasonStartInput() {
-  const v = document.getElementById('seasonStartInput')?.value;
-  if (!v) return 0;
-  const ms = new Date(v).getTime();
-  return Number.isFinite(ms) ? Math.floor(ms / 1000) : 0;
+  return 1746716400; // 시즌5 고정: 2025-05-09 00:00 KST
 }
-function setSeasonStartFromApi(s) {
-  const raw = s?.seasonStart ?? s?.startTime ?? s?.startTimestamp ?? s?.startsAt ?? s?.createdAt;
-  if (!raw) return;
-  let ts = 0;
-  if (typeof raw === 'number') ts = raw > 1e12 ? Math.floor(raw / 1000) : raw;
-  else {
-    const asNum = Number(raw);
-    if (Number.isFinite(asNum) && asNum > 0) ts = asNum > 1e12 ? Math.floor(asNum / 1000) : asNum;
-    else {
-      const ms = new Date(raw).getTime();
-      if (Number.isFinite(ms)) ts = Math.floor(ms / 1000);
-    }
-  }
-  if (ts > 0 && !document.getElementById('seasonStartInput').value) {
-    seasonStartTs = ts;
-    const d = new Date(ts * 1000);
-    document.getElementById('seasonStartInput').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    const lbl = document.getElementById('seasonAutoLabel');
-    if (lbl) lbl.textContent = '● 자동';
-  }
+function setSeasonStartFromApi() {
+  seasonStartTs = 1746716400; // 시즌5 고정: 2025-05-09 00:00 KST
 }
 function normalizeSeasonCookies(raw, allTimeCookiesHuman) {
   const n = Number(raw || 0);
@@ -307,28 +376,52 @@ function normalizeSeasonCookies(raw, allTimeCookiesHuman) {
 // ── ETH price ─────────────────────────────────────────────────
 async function fetchETH() {
   try {
-    const r = await fetch(CGECKO);
+    const cached = JSON.parse(sessionStorage.getItem('ethCache') || 'null');
+    if (cached && Date.now() - cached.ts < ETH_CACHE_TTL && cached.price > 0) {
+      ethPrice = cached.price;
+      smv('p-eth', fmtUSD(ethPrice));
+      return;
+    }
+  } catch {}
+  try {
+    const r = await fetch(CGECKO, { cache: 'no-store' });
     const d = await r.json();
     ethPrice = d?.ethereum?.usd || 0;
   } catch {
     try { const d2 = await pfetch(CGECKO); ethPrice = d2?.ethereum?.usd || 0; }
     catch { ethPrice = 0; }
   }
+  if (ethPrice > 0) {
+    try { sessionStorage.setItem('ethCache', JSON.stringify({ ts: Date.now(), price: ethPrice })); } catch {}
+  }
   smv('p-eth', ethPrice > 0 ? fmtUSD(ethPrice) : '—');
 }
 
 // ── Prize pool (USD → ETH 자동 변환) ─────────────────────────
-async function fetchPrizePool() {
+async function fetchPrizePool(opts = {}) {
+  const force = opts.force === true;
   const manualUsd = parseFloat(document.getElementById('prizePoolUsd').value);
   const label = document.getElementById('prizeAutoLabel');
 
-  // 수동 입력이 있으면 ETH 변환만
-  if (manualUsd > 0) {
+  // 수동 입력이 있으면 ETH 변환만. 단, 초기 공개 데이터 프리로드에서 force일 때는 자동값 재조회 허용.
+  if (!force && manualUsd > 0) {
     updatePrizeDisplay(manualUsd, '수동');
-    return;
+    return manualUsd;
   }
 
-  // API 자동 조회
+  // 공개 보상풀 캐시: 사용자/팀 조회와 무관하게 먼저 보여준다.
+  try {
+    const cached = JSON.parse(sessionStorage.getItem('prizePoolCache') || 'null');
+    if (!force && cached && Date.now() - cached.ts < PRIZE_CACHE_TTL && cached.usd > 0) {
+      document.getElementById('prizePoolUsd').value = Math.round(cached.usd);
+      if (label) label.textContent = '● 공개 캐시';
+      updatePrizeDisplay(cached.usd, '캐시');
+      // seasonStartTs는 시즌5 고정값 사용
+      return cached.usd;
+    }
+  } catch {}
+
+  // API 자동 조회: 홈페이지의 전역 보상풀과 같은 공개 데이터이므로 유저 조회 전에 실행한다.
   const endpoints = [
     'leaderboard.getActiveSeason',
     'leaderboard.getCurrentSeason',
@@ -338,47 +431,64 @@ async function fetchPrizePool() {
       const data = await pfetch(BAKERY_API + ep + '?input=' + encodeURIComponent(JSON.stringify({ json: {} })));
       const s = data?.result?.data?.json;
       if (!s) continue;
-      setSeasonStartFromApi(s);
+      setSeasonStartFromApi();
 
-      // USD 기준 prize pool 추출
       let usd = null;
       if (s.prizePoolUsd != null)       usd = Number(s.prizePoolUsd);
       else if (s.prizePool != null) {
         const raw = Number(s.prizePool);
-        // wei면 ETH로, 달러면 그대로
         usd = raw > 1e15 ? (raw / 1e18) * ethPrice : raw;
       } else if (s.totalPrize != null) {
         const raw = Number(s.totalPrize);
         usd = raw > 1e15 ? (raw / 1e18) * ethPrice : raw;
-      }
+      } else if (s.rewardPoolUsd != null) usd = Number(s.rewardPoolUsd);
 
       if (usd > 0) {
         document.getElementById('prizePoolUsd').value = Math.round(usd);
-        if (label) label.textContent = '● 자동';
+        if (label) label.textContent = '● 공개 자동';
         updatePrizeDisplay(usd, '자동');
-        return;
+        try { sessionStorage.setItem('prizePoolCache', JSON.stringify({ ts: Date.now(), usd, seasonStartTs })); } catch {}
+        return usd;
       }
     } catch(e) { console.warn('[prize]', ep, e.message); }
   }
 
-  // agent.json 시도
+  // agent.json fallback
   try {
     const d = await pfetch('https://www.rugpullbakery.com/agent.json');
-    const raw = d?.prizePool ?? d?.season?.prizePool ?? d?.prizePoolUsd;
+    const raw = d?.prizePool ?? d?.season?.prizePool ?? d?.prizePoolUsd ?? d?.rewardPoolUsd;
     if (raw != null) {
       const n = Number(raw);
       const usd = n > 1e15 ? (n / 1e18) * ethPrice : n;
       if (usd > 0) {
         document.getElementById('prizePoolUsd').value = Math.round(usd);
-        if (label) label.textContent = '● 자동';
+        if (label) label.textContent = '● 공개 자동';
         updatePrizeDisplay(usd, '자동');
-        return;
+        try { sessionStorage.setItem('prizePoolCache', JSON.stringify({ ts: Date.now(), usd, seasonStartTs })); } catch {}
+        return usd;
       }
     }
   } catch(e) { console.warn('[prize] agent.json', e.message); }
 
+  // 홈페이지 텍스트 fallback: 랜딩에 $2,500처럼 노출된 값을 직접 파싱 시도.
+  try {
+    const html = await pfetchText('https://www.rugpullbakery.com/');
+    const matches = [...html.matchAll(/\$\s*([0-9][0-9,]*(?:\.\d+)?)/g)]
+      .map(m => Number(m[1].replace(/,/g, '')))
+      .filter(n => Number.isFinite(n) && n > 0);
+    if (matches.length) {
+      const usd = Math.max(...matches);
+      document.getElementById('prizePoolUsd').value = Math.round(usd);
+      if (label) label.textContent = '● 홈페이지';
+      updatePrizeDisplay(usd, '홈페이지');
+      try { sessionStorage.setItem('prizePoolCache', JSON.stringify({ ts: Date.now(), usd, seasonStartTs })); } catch {}
+      return usd;
+    }
+  } catch(e) { console.warn('[prize] homepage text', e.message); }
+
   if (label) label.textContent = '수동 입력';
   document.getElementById('prizePoolUsd').placeholder = '직접 입력 (USD)';
+  return null;
 }
 
 function updatePrizeDisplay(usd, src) {
@@ -395,6 +505,7 @@ function updatePrizeDisplay(usd, src) {
 async function resolveUsername(username) {
   const name = username.trim();
   const q = name.toLowerCase();
+  if (usernameCache.has(q)) return usernameCache.get(q);
   try {
     const data = await pfetch(PORTAL_SEARCH + encodeURIComponent(name));
     const users = data?.results?.users || [];
@@ -403,11 +514,13 @@ async function resolveUsername(username) {
     const exact = valid.find(u => labelOf(u).toLowerCase() === q);
     if (exact) {
       console.log('[resolve] ✅ portal exact:', exact.address);
+      usernameCache.set(q, exact.address);
       return exact.address;
     }
     const fuzzy = valid.filter(u => labelOf(u).toLowerCase().includes(q) || q.includes(labelOf(u).toLowerCase()));
     if (fuzzy.length === 1) {
       notice('정확 일치는 아니지만 유사 닉네임 1건을 사용합니다: ' + labelOf(fuzzy[0]) + ' → ' + fuzzy[0].address.slice(0,6)+'...'+fuzzy[0].address.slice(-4), 'warn');
+      usernameCache.set(q, fuzzy[0].address);
       return fuzzy[0].address;
     }
     if (fuzzy.length > 1) {
@@ -473,19 +586,48 @@ async function findBakeryId(address) {
   return null;
 }
 
-// ── Gas cost (paginated + 5분 캐시) ──────────────────────────
-const GAS_CACHE_TTL = 5 * 60 * 1000; // 5분
+// ── Gas cost (paginated + 캐시 + startblock 최적화) ─────────────
+async function getStartBlockForTimestamp(ts) {
+  if (!ts) return 0;
+  const key = 'blockByTs_' + ts;
+  try {
+    const cached = Number(sessionStorage.getItem(key) || 0);
+    if (cached > 0) return cached;
+  } catch {}
+  try {
+    const url = `${ABSCAN_API}?module=block&action=getblocknobytime&timestamp=${ts}&closest=after`;
+    const data = await pfetch(url);
+    const block = Number(data?.result || 0);
+    if (block > 0) {
+      try { sessionStorage.setItem(key, String(block)); } catch {}
+      return block;
+    }
+  } catch(e) { console.warn('[blockByTime]', e.message); }
+  return 0;
+}
 
-async function fetchGasCost(address) {
+function isFastModeOn() {
+  return document.getElementById('fastMode')?.checked !== false;
+}
+
+async function fetchGasCost(address, opts = {}) {
   if (!address) return null;
   const noteEl  = document.getElementById('gasNote');
   const badgeEl = document.getElementById('txCountBadge');
 
-  // 캐시 확인 (같은 주소 + 5분 이내 + 시즌 필터 동일)
+  const manualSeasonTs = parseSeasonStartInput();
+  if (manualSeasonTs > 0) seasonStartTs = manualSeasonTs;
+
+  // 빠른 조회 모드에서는 일반 Refresh/Auto Refresh 때 가스비를 재조회하지 않고 캐시를 우선 사용한다.
+  const fastMode = isFastModeOn();
+  const force = opts.force === true || forceGasOnce === true;
+  forceGasOnce = false;
+
+  // 캐시 확인 (같은 주소 + 시즌 필터 동일)
   const cacheKey = 'gasCache_' + address.toLowerCase() + '_' + (seasonStartTs || 0);
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
-    if (cached && Date.now() - cached.ts < GAS_CACHE_TTL) {
+    if (cached && (fastMode || Date.now() - cached.ts < GAS_CACHE_TTL) && !force) {
       console.log('[gas] 캐시 히트 — 재조회 스킵');
       // 캐시 데이터로 UI 업데이트
       document.getElementById('g-total').textContent  = cached.totalEth + ' ETH';
@@ -493,7 +635,7 @@ async function fetchGasCost(address) {
       document.getElementById('g-boost').textContent  = cached.boostEth + ' ETH';
       document.getElementById('g-usd').textContent    = ethPrice > 0 ? fmtUSD(parseFloat(cached.totalEth) * ethPrice) : '—';
       badgeEl.textContent = cached.badge + ' (캐시)';
-      noteEl.textContent  = cached.note  + ' · 캐시 사용 중 (5분 후 자동 갱신)';
+      noteEl.textContent  = cached.note  + (fastMode ? ' · 빠른 조회: 캐시 사용 중' : ' · 캐시 사용 중');
       document.getElementById('gasLog').innerHTML = cached.log || '';
       if (cached.log) document.getElementById('logBtn').style.display = 'inline';
       cachedGasETH = parseFloat(cached.totalEth);
@@ -501,10 +643,17 @@ async function fetchGasCost(address) {
     }
   } catch { /* 캐시 파싱 실패 무시 */ }
 
+  let startBlock = 0;
+  if (seasonStartTs > 0) {
+    noteEl.textContent = '시즌 시작 블록 조회 중...';
+    startBlock = await getStartBlockForTimestamp(seasonStartTs);
+  }
+
   noteEl.textContent = '페이지 1 조회 중...';
   let allTxs = [], page = 1, hasMore = true;
   while (hasMore) {
-    const url = `${ABSCAN_API}?module=account&action=txlist&address=${address}&sort=asc&page=${page}&offset=${PAGE_SIZE}`;
+    const blockPart = startBlock > 0 ? `&startblock=${startBlock}` : '';
+    const url = `${ABSCAN_API}?module=account&action=txlist&address=${address}${blockPart}&sort=asc&page=${page}&offset=${PAGE_SIZE}`;
     try {
       const data = await pfetch(url);
       if (data.status !== '1' || !Array.isArray(data.result) || !data.result.length) { hasMore = false; break; }
@@ -520,8 +669,6 @@ async function fetchGasCost(address) {
     badgeEl.textContent = '0건';
     return null;
   }
-  const manualSeasonTs = parseSeasonStartInput();
-  if (manualSeasonTs > 0) seasonStartTs = manualSeasonTs;
   const scopedTxs = seasonStartTs > 0
     ? allTxs.filter(tx => Number(tx.timeStamp) >= seasonStartTs)
     : allTxs;
@@ -581,6 +728,8 @@ function calcPnL(allTimeCookies, gasETH) {
   }
 
   smv('p-pool',  fmtE(prizeETH, 4) + ' ETH');
+  const shareEl = document.getElementById('p-share');
+  if (shareEl) shareEl.title = 'Score 점유율 기준 (쿠키 점유율과 다를 수 있음)';
   smv('p-share', sharePct > 0 ? sharePct.toFixed(4)+'%' : '—', sharePct > 0 ? 'g' : 'm');
   smv('p-gross', fmtE(grossETH, 4)+' ETH', 'g');
   sv('v-gross-eth', fmtE(grossETH, 4)+' ETH', 'g');
@@ -595,6 +744,27 @@ function calcPnL(allTimeCookies, gasETH) {
     document.getElementById('gasFill').style.width = pct.toFixed(1)+'%';
     document.getElementById('gasRatioPct').textContent = pct.toFixed(1)+'% of gross';
   }
+}
+
+
+// ── Public preload: 사용자/팀 조회 전 공개 데이터 먼저 표시 ───────
+async function preloadPublicData(opts = {}) {
+  if (publicDataPromise && !opts.force) return publicDataPromise;
+  publicDataPromise = (async () => {
+    const oldStatus = document.getElementById('sTxt').textContent;
+    if (!publicDataReady) setStatus('공개 데이터 로드 중...', '');
+    await fetchETH();
+    await fetchPrizePool({ force: opts.force === true });
+    publicDataReady = true;
+    if (!lastBakeryId && !lastResolvedAddr && oldStatus === '대기 중') setStatus('공개 데이터 준비 완료', 'live');
+  })().catch(e => {
+    console.warn('[preload public]', e.message);
+    publicDataReady = false;
+    if (!lastBakeryId && !lastResolvedAddr) setStatus('공개 데이터 일부 실패', '');
+  }).finally(() => {
+    if (opts.force) publicDataPromise = null;
+  });
+  return publicDataPromise;
 }
 
 // ── Main fetch ────────────────────────────────────────────────
@@ -612,17 +782,21 @@ async function fetchAll() {
   let bakeryId = manualId;
 
   try {
-    await Promise.all([fetchETH(), fetchPrizePool()]);
+    // ETH 가격과 보상풀은 페이지 로드시 이미 프리로드된다.
+    // 여기서는 완료되지 않았을 경우만 기다리므로 유저/팀 조회보다 먼저 화면에 값이 뜬다.
+    await preloadPublicData();
 
     // Step 1: 닉네임 or 주소 resolve
     if (rawInput) {
       if (/^0x[0-9a-fA-F]{40}$/.test(rawInput)) {
         resolvedAddr = rawInput; // 원본 케이싱 보존
+        lastResolvedAddr = rawInput;
       } else {
         setStatus('닉네임 조회 중...', '');
         const addr = await resolveUsername(rawInput);
         if (addr) {
           resolvedAddr = addr; // portal에서 받은 그대로 사용
+          lastResolvedAddr = addr;
           notice('"' + rawInput + '" → ' + addr.slice(0,6)+'...'+addr.slice(-4), 'info');
         } else {
           notice('"' + rawInput + '" 닉네임을 찾을 수 없습니다. 지갑 주소(0x...)를 직접 입력해 주세요.', 'err');
@@ -638,16 +812,19 @@ async function fetchAll() {
       const found = await findBakeryId(resolvedAddr);
       if (found) {
         bakeryId = found.id;
+        lastBakeryId = bakeryId;
         document.getElementById('bId').value = bakeryId;
         notice((rawInput && !/^0x/.test(rawInput) ? '"'+rawInput+'" → ' : '')
           + '팀 베이커리 자동 감지: #' + bakeryId + (found.name ? ' ('+found.name+')' : ''), 'info');
       } else {
         notice('소속 팀 베이커리를 찾을 수 없습니다. 시즌이 시작되지 않았거나 팀 미가입 상태일 수 있습니다.\n가스비 분석은 계속 진행합니다.', 'warn');
-        if (resolvedAddr) await fetchGasCost(resolvedAddr);
+        if (resolvedAddr) await fetchGasCost(resolvedAddr, { force: false });
         setStatus('일부 완료 (팀 미감지)', '');
         return;
       }
     }
+
+    if (bakeryId) lastBakeryId = bakeryId;
 
     if (!bakeryId) {
       notice('닉네임/지갑 주소 또는 Bakery ID를 입력해 주세요.', 'err');
@@ -694,7 +871,7 @@ async function fetchAll() {
 
     // Step 4: 가스비 + P&L
     let gasETH = null;
-    if (resolvedAddr) gasETH = await fetchGasCost(resolvedAddr);
+    if (resolvedAddr) gasETH = await fetchGasCost(resolvedAddr, { force: false });
     calcPnL(allTimeCook, gasETH);
 
     notice(null);
@@ -717,11 +894,162 @@ document.getElementById('prizePoolUsd').addEventListener('input', () => {
   if (usd > 0) updatePrizeDisplay(usd, '수동');
   calcPnL(lastAllTimeCookies, null);
 });
-document.getElementById('seasonStartInput').addEventListener('input', () => {
-  seasonStartTs = parseSeasonStartInput();
-  const lbl = document.getElementById('seasonAutoLabel');
-  if (lbl) lbl.textContent = seasonStartTs > 0 ? '수동' : '선택';
-});
+
+
+
+async function refreshGasNow() {
+  const rawInput = document.getElementById('playerInput').value.trim();
+  let addr = lastResolvedAddr;
+  if (!addr && /^0x[0-9a-fA-F]{40}$/.test(rawInput)) addr = rawInput;
+  if (!addr && rawInput) addr = await resolveUsername(rawInput);
+  if (!addr) { notice('Gas를 새로고침하려면 지갑 주소 또는 닉네임을 먼저 입력해 주세요.', 'err'); return; }
+
+  const btn = document.getElementById('btnGas');
+  const old = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Gas 조회';
+  btn.disabled = true;
+  try {
+    forceGasOnce = true;
+    const gas = await fetchGasCost(addr, { force: true });
+    calcPnL(lastAllTimeCookies, gas);
+    setStatus('Gas 업데이트 완료', 'live');
+  } catch(e) {
+    notice('Gas 갱신 실패: ' + e.message, 'err');
+    setStatus('오류', 'err');
+  } finally {
+    btn.innerHTML = old;
+    btn.disabled = false;
+  }
+}
+
+// ── Season 5 Score Calculator ─────────────────────────────────
+const S5_START = 1746716400;
+const S5_END   = 1747321200;
+
+function getSeasonDay() {
+  const now = Math.floor(Date.now() / 1000);
+  if (now < S5_START) return -1; // 미시작
+  const elapsed = now - S5_START;
+  return Math.min(Math.floor(elapsed / 86400), 7);
+}
+
+function getScoreScaler(day) {
+  return 1 + 0.05 * Math.max(0, day);
+}
+
+function updateSeasonInfo() {
+  const now = Date.now() / 1000;
+  const day = getSeasonDay();
+  const scaler = getScoreScaler(day);
+
+  // 카운트다운
+  const cdEl = document.getElementById('s5countdown');
+  const remainEl = document.getElementById('sc-remain');
+  if (cdEl || remainEl) {
+    if (now < S5_START) {
+      const diff = S5_START - now;
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = Math.floor(diff % 60);
+      const txt = `시작까지 ${h}h ${m}m ${s}s`;
+      if (cdEl) cdEl.textContent = txt;
+      if (remainEl) remainEl.textContent = txt;
+      if (document.getElementById('sc-day')) document.getElementById('sc-day').textContent = '미시작';
+      if (document.getElementById('sc-scaler')) document.getElementById('sc-scaler').textContent = '1.00x (Day 0)';
+    } else if (now > S5_END) {
+      if (cdEl) cdEl.textContent = '시즌 종료';
+      if (remainEl) remainEl.textContent = '종료';
+      if (document.getElementById('sc-day')) document.getElementById('sc-day').textContent = 'Day ' + day + ' (종료)';
+      if (document.getElementById('sc-scaler')) document.getElementById('sc-scaler').textContent = scaler.toFixed(2) + 'x';
+    } else {
+      const diff = S5_END - now;
+      const d = Math.floor(diff / 86400);
+      const h = Math.floor((diff % 86400) / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = Math.floor(diff % 60);
+      const txt = `종료까지 ${d}d ${h}h ${m}m ${s}s`;
+      if (cdEl) cdEl.textContent = txt;
+      if (remainEl) remainEl.textContent = txt;
+      if (document.getElementById('sc-day')) document.getElementById('sc-day').textContent = 'Day ' + day;
+      if (document.getElementById('sc-scaler')) {
+        const el = document.getElementById('sc-scaler');
+        el.textContent = scaler.toFixed(2) + 'x';
+        el.className = 'rv g';
+      }
+    }
+  }
+
+  // 내 예상 Score (allTimeCookies 사용)
+  const myScoreEl = document.getElementById('sc-myscore');
+  if (myScoreEl && lastAllTimeCookies > 0 && day >= 0) {
+    // 근사치: 전체 쿠키를 현재 scaler로 계산 (실제는 각 bake 시점 scaler 합산)
+    const estScore = lastAllTimeCookies * scaler;
+    myScoreEl.textContent = Math.round(estScore).toLocaleString('ko-KR') + ' (근사치)';
+    myScoreEl.className = 'rv a';
+  }
+}
+
+// 1초마다 카운트다운 업데이트
+setInterval(updateSeasonInfo, 1000);
+updateSeasonInfo();
+
+// ── Season 5 Score Calculator ─────────────────────────────────
+const S5_START = 1746716400;
+const S5_END   = 1747321200;
+
+function getSeasonDay() {
+  const now = Math.floor(Date.now() / 1000);
+  if (now < S5_START) return -1;
+  return Math.min(Math.floor((now - S5_START) / 86400), 7);
+}
+
+function updateSeasonInfo() {
+  const now = Date.now() / 1000;
+  const day = getSeasonDay();
+  const scaler = 1 + 0.05 * Math.max(0, day);
+
+  function fmtCountdown(secs) {
+    const d = Math.floor(secs / 86400);
+    const h = Math.floor((secs % 86400) / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    return (d > 0 ? d + 'd ' : '') + h + 'h ' + m + 'm ' + s + 's';
+  }
+
+  const cdEl  = document.getElementById('s5countdown');
+  const dayEl = document.getElementById('sc-day');
+  const sclEl = document.getElementById('sc-scaler');
+  const remEl = document.getElementById('sc-remain');
+
+  if (now < S5_START) {
+    const txt = '시작까지 ' + fmtCountdown(S5_START - now);
+    if (cdEl)  cdEl.textContent  = txt;
+    if (dayEl) dayEl.textContent = '미시작';
+    if (sclEl) sclEl.textContent = '1.00x (Day 0)';
+    if (remEl) remEl.textContent = '시즌 미시작';
+  } else if (now > S5_END) {
+    if (cdEl)  cdEl.textContent  = 'Season 5 종료';
+    if (dayEl) dayEl.textContent = 'Day 7 (종료)';
+    if (sclEl) { sclEl.textContent = '1.35x'; sclEl.className = 'rv g'; }
+    if (remEl) remEl.textContent = '종료됨';
+  } else {
+    const txt = fmtCountdown(S5_END - now);
+    if (cdEl)  cdEl.textContent  = txt;
+    if (dayEl) dayEl.textContent = 'Day ' + day;
+    if (sclEl) { sclEl.textContent = scaler.toFixed(2) + 'x'; sclEl.className = 'rv g'; }
+    if (remEl) remEl.textContent = txt;
+  }
+
+  // 내 예상 score (근사치: allTimeCookies * 현재 scaler)
+  const myEl = document.getElementById('sc-myscore');
+  if (myEl && lastAllTimeCookies > 0 && day >= 0) {
+    const est = Math.round(lastAllTimeCookies * scaler);
+    myEl.textContent = est.toLocaleString('ko-KR') + ' (근사)';
+    myEl.className = 'rv a';
+  }
+}
+
+setInterval(updateSeasonInfo, 1000);
 
 // ── Auto refresh ──────────────────────────────────────────────
 function toggleAuto() {
@@ -747,6 +1075,16 @@ function startCD() {
     if (cdSec <= 0) { clearInterval(cdTimer); fetchAll().then(startCD); }
   }, 1000);
 }
+
+
+// 페이지가 열리자마자 공개 데이터부터 표시한다. 유저명/팀 조회를 기다리지 않는다.
+document.addEventListener('DOMContentLoaded', () => {
+  smv('p-eth', 'loading...', 'm');
+  smv('p-pool', 'loading...', 'm');
+  preloadPublicData();
+  updateSeasonInfo();
+});
+
 </script>
 </body>
 </html>
